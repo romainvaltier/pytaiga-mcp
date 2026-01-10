@@ -175,3 +175,9 @@ cython_debug/
 
 # vscode
 .vscode/
+
+# DevContainer
+.devcontainer/
+
+# Claude
+.claude/

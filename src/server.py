@@ -2,13 +2,39 @@
 import logging
 import logging.config
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
 from pytaigaclient.exceptions import TaigaException
 
 # Assuming taiga_client.py is in the same directory or accessible via PYTHONPATH
 from src.taiga_client import TaigaClientWrapper
+from src.types import (
+    DeleteResponse,
+    EpicList,
+    EpicResponse,
+    InviteResponse,
+    IssueList,
+    IssueResponse,
+    IssueTypeList,
+    LoginResponse,
+    LogoutResponse,
+    MemberList,
+    MilestoneList,
+    MilestoneResponse,
+    PriorityList,
+    ProjectList,
+    ProjectResponse,
+    SessionStatusResponse,
+    SeverityList,
+    StatusList,
+    TaskList,
+    TaskResponse,
+    UserStoryList,
+    UserStoryResponse,
+    WikiPageList,
+    WikiPageResponse,
+)
 from src.validators import (
     ValidationError,
     get_allowed_kwargs_for_resource,
@@ -147,18 +173,34 @@ def _unassign_resource_from_user(
     "login",
     description="Logs into a Taiga instance using username/password and returns a session_id for subsequent authenticated calls.",
 )
-def login(host: str, username: str, password: str) -> Dict[str, str]:
+def login(host: str, username: str, password: str) -> LoginResponse:
     """
-    Handles Taiga login and creates a session.
+    Authenticate with a Taiga instance and create an authenticated session.
+
+    This tool initiates authentication with the Taiga API using username and password credentials.
+    A unique session ID is returned for use in all subsequent API calls. The session remains valid
+    for the configured TTL (default: 8 hours).
 
     Args:
-        host: The URL of the Taiga instance (e.g., 'https://tree.taiga.io').
-        username: The Taiga username.
-        password: The Taiga password.
+        host: The base URL of the Taiga instance (must use HTTPS for security).
+              Examples: https://api.taiga.io, https://taiga.company.com
+        username: The Taiga username for authentication.
+        password: The Taiga password for authentication.
 
     Returns:
-        A dictionary containing the session_id upon successful login.
-        Example: {"session_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"}
+        LoginResponse: Dictionary containing:
+            - session_id: UUID string to use in subsequent authenticated calls
+        Example: {"session_id": "550e8400-e29b-41d4-a716-446655440000"}
+
+    Raises:
+        ValueError: If the host URL doesn't use HTTPS (required for security).
+        TaigaException: If authentication fails (invalid credentials).
+        RuntimeError: If an unexpected server error occurs.
+
+    Example:
+        >>> result = login("https://api.taiga.io", "john_doe", "secure_password")
+        >>> session_id = result["session_id"]
+        >>> # Use session_id in subsequent tool calls
     """
     logger.info(f"Executing login tool for user '{username}' on host '{host}'")
 
@@ -188,13 +230,6 @@ def login(host: str, username: str, password: str) -> Dict[str, str]:
         raise RuntimeError(f"An unexpected server error occurred during login: {e}")
 
 
-# server_fastmcp.py
-
-# ... (keep existing imports, logging setup, active_sessions, FastMCP instance) ...
-# ... (keep _get_authenticated_client helper function) ...
-# ... (keep login tool function) ...
-
-
 # --- Project Tools ---
 
 
@@ -202,8 +237,31 @@ def login(host: str, username: str, password: str) -> Dict[str, str]:
     "list_projects",
     description="Lists projects accessible to the user associated with the provided session_id.",
 )
-def list_projects(session_id: str) -> List[Dict[str, Any]]:
-    """Lists projects accessible by the authenticated user."""
+def list_projects(session_id: str) -> ProjectList:
+    """
+    List all projects accessible to the authenticated user.
+
+    Retrieves a list of all Taiga projects that the authenticated user has access to.
+
+    Args:
+        session_id: The UUID session identifier from login.
+
+    Returns:
+        ProjectList: List of ProjectResponse dictionaries, each containing:
+            - id: Project ID
+            - name: Project name
+            - slug: URL-safe project identifier
+            - description: Project description (optional)
+            - And other project metadata fields
+
+    Raises:
+        PermissionError: If the session_id is invalid or expired.
+
+    Example:
+        >>> projects = list_projects(session_id)
+        >>> for project in projects:
+        ...     print(f"{project['name']} ({project['slug']})")
+    """
     logger.info(f"Executing list_projects for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
@@ -227,8 +285,25 @@ def list_projects(session_id: str) -> List[Dict[str, Any]]:
     "list_all_projects",
     description="Lists all projects visible to the user (requires admin privileges for full list). Uses the provided session_id.",
 )
-def list_all_projects(session_id: str) -> List[Dict[str, Any]]:
-    """Lists all projects visible to the authenticated user (scope depends on permissions)."""
+def list_all_projects(session_id: str) -> ProjectList:
+    """
+    List all projects visible to the authenticated user.
+
+    Similar to list_projects but includes additional projects depending on permissions.
+    Admin users may see more projects than regular users.
+
+    Args:
+        session_id: The UUID session identifier from login.
+
+    Returns:
+        ProjectList: List of ProjectResponse dictionaries (same as list_projects).
+
+    Raises:
+        PermissionError: If the session_id is invalid or expired.
+
+    Example:
+        >>> all_projects = list_all_projects(session_id)
+    """
     logger.info(f"Executing list_all_projects for session {session_id[:8]}...")
     # pytaigaclient's list() likely behaves similarly to python-taiga's
     return list_projects(session_id)  # Keep delegation
@@ -237,8 +312,34 @@ def list_all_projects(session_id: str) -> List[Dict[str, Any]]:
 @mcp.tool(
     "get_project", description="Gets detailed information about a specific project by its ID."
 )
-def get_project(session_id: str, project_id: int) -> Dict[str, Any]:
-    """Retrieves project details by ID."""
+def get_project(session_id: str, project_id: int) -> ProjectResponse:
+    """
+    Get detailed information about a specific project.
+
+    Retrieves full details of a project including metadata, settings, and members.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project.
+
+    Returns:
+        ProjectResponse: Project details including:
+            - id: Project ID
+            - name: Project name
+            - slug: URL-safe identifier
+            - description: Project description
+            - is_private: Privacy flag
+            - owner: Owner user ID
+            - And other metadata
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        TaigaException: If the project doesn't exist or access denied.
+
+    Example:
+        >>> project = get_project(session_id, 42)
+        >>> print(f"Project: {project['name']} - {project['description']}")
+    """
     logger.info(f"Executing get_project ID {project_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
@@ -258,8 +359,27 @@ def get_project(session_id: str, project_id: int) -> Dict[str, Any]:
     "get_project_by_slug",
     description="Gets detailed information about a specific project by its slug.",
 )
-def get_project_by_slug(session_id: str, slug: str) -> Dict[str, Any]:
-    """Retrieves project details by slug."""
+def get_project_by_slug(session_id: str, slug: str) -> ProjectResponse:
+    """
+    Get detailed information about a specific project by its slug.
+
+    Retrieves project details using the URL-safe slug identifier instead of numeric ID.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        slug: The URL-safe project identifier (e.g., 'my-awesome-project').
+
+    Returns:
+        ProjectResponse: Project details (see get_project for field details).
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        TaigaException: If the project doesn't exist or access denied.
+
+    Example:
+        >>> project = get_project_by_slug(session_id, "my-project")
+        >>> print(project['id'])  # Get numeric ID for other operations
+    """
     logger.info(f"Executing get_project_by_slug '{slug}' for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
@@ -276,8 +396,44 @@ def get_project_by_slug(session_id: str, slug: str) -> Dict[str, Any]:
 
 
 @mcp.tool("create_project", description="Creates a new project.")
-def create_project(session_id: str, name: str, description: str, **kwargs) -> Dict[str, Any]:
-    """Creates a new project. Requires name and description. Optional args (e.g., is_private) via kwargs."""
+def create_project(session_id: str, name: str, description: str, **kwargs) -> ProjectResponse:
+    """
+    Create a new Taiga project.
+
+    Creates a new project in Taiga with the provided name and description.
+    Additional project settings can be configured via optional kwargs.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        name: The project name (required, max 200 chars).
+        description: Project description (required, max 1000 chars).
+        **kwargs: Optional project settings:
+            - is_private: Boolean, defaults to False
+            - default_owner_role: Integer role ID
+            - tags: List of tag strings
+
+    Returns:
+        ProjectResponse: The newly created project with:
+            - id: Numeric project ID
+            - name: Project name
+            - slug: Auto-generated URL-safe identifier
+            - description: Project description
+            - And other metadata fields
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        ValueError: If name or description is invalid.
+        TaigaException: If project creation fails.
+
+    Example:
+        >>> project = create_project(
+        ...     session_id,
+        ...     "My Awesome Project",
+        ...     "A project for awesome work",
+        ...     is_private=True
+        ... )
+        >>> print(f"Created project with ID: {project['id']}")
+    """
     logger.info(
         f"Executing create_project '{name}' for session {session_id[:8]} with data: {kwargs}"
     )
@@ -309,8 +465,29 @@ def create_project(session_id: str, name: str, description: str, **kwargs) -> Di
 
 
 @mcp.tool("update_project", description="Updates details of an existing project.")
-def update_project(session_id: str, project_id: int, **kwargs) -> Dict[str, Any]:
-    """Updates a project. Pass fields to update as keyword arguments (e.g., name='New Name', description='New Desc')."""
+def update_project(session_id: str, project_id: int, **kwargs) -> ProjectResponse:
+    """
+    Update an existing project's details.
+
+    Modifies one or more fields of an existing project. Only the fields provided in kwargs are updated.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project to update.
+        **kwargs: Project fields to update (name, description, is_private, tags, default_owner_role).
+
+    Returns:
+        ProjectResponse: The updated project details (see create_project for fields).
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        ValueError: If project_id is invalid or update values are invalid.
+        TaigaException: If project doesn't exist or update fails.
+
+    Example:
+        >>> updated = update_project(session_id, 42, description="Updated description")
+        >>> print(f"Updated: {updated['description']}")
+    """
     logger.info(
         f"Executing update_project ID {project_id} for session {session_id[:8]} with data: {kwargs}"
     )
@@ -354,8 +531,29 @@ def update_project(session_id: str, project_id: int, **kwargs) -> Dict[str, Any]
 
 
 @mcp.tool("delete_project", description="Deletes a project by its ID. This is irreversible.")
-def delete_project(session_id: str, project_id: int) -> Dict[str, Any]:
-    """Deletes a project by ID."""
+def delete_project(session_id: str, project_id: int) -> DeleteResponse:
+    """
+    Delete a project permanently.
+
+    Permanently deletes a project and all its associated data. This operation is irreversible.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project to delete.
+
+    Returns:
+        DeleteResponse: Confirmation dictionary with:
+            - status: "deleted" if successful
+
+    Raises:
+        PermissionError: If the session_id is invalid or user lacks permission to delete.
+        ValueError: If project_id is invalid.
+        TaigaException: If project doesn't exist or deletion fails.
+
+    Example:
+        >>> result = delete_project(session_id, 42)
+        >>> print(result["status"])  # "deleted"
+    """
     logger.warning(f"Executing delete_project ID {project_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
 
@@ -392,8 +590,32 @@ def delete_project(session_id: str, project_id: int) -> Dict[str, Any]:
     "list_user_stories",
     description="Lists user stories within a specific project, optionally filtered.",
 )
-def list_user_stories(session_id: str, project_id: int, **filters) -> List[Dict[str, Any]]:
-    """Lists user stories for a project. Optional filters like 'milestone', 'status', 'assigned_to' can be passed as keyword arguments."""
+def list_user_stories(session_id: str, project_id: int, **filters) -> UserStoryList:
+    """
+    List all user stories in a project.
+
+    Retrieves user stories from a project with optional filtering by status, milestone, assignee, etc.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project.
+        **filters: Optional filter parameters:
+            - milestone: Milestone/sprint ID
+            - status: Status ID
+            - assigned_to: User ID
+
+    Returns:
+        UserStoryList: List of UserStoryResponse dictionaries for the project.
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        ValueError: If project_id is invalid.
+
+    Example:
+        >>> stories = list_user_stories(session_id, 42)
+        >>> for story in stories:
+        ...     print(f"{story['subject']} (status: {story.get('status')})")
+    """
     logger.info(
         f"Executing list_user_stories for project {project_id}, session {session_id[:8]}, filters: {filters}"
     )
@@ -424,8 +646,45 @@ def list_user_stories(session_id: str, project_id: int, **filters) -> List[Dict[
 
 
 @mcp.tool("create_user_story", description="Creates a new user story within a project.")
-def create_user_story(session_id: str, project_id: int, subject: str, **kwargs) -> Dict[str, Any]:
-    """Creates a user story. Requires project_id and subject. Optional fields (description, milestone_id, status_id, assigned_to_id, etc.) via kwargs."""
+def create_user_story(session_id: str, project_id: int, subject: str, **kwargs) -> UserStoryResponse:
+    """
+    Create a new user story in a project.
+
+    Creates a user story with the required subject and optional additional fields.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project.
+        subject: The user story title (required, max 500 chars).
+        **kwargs: Optional fields:
+            - description: Detailed description
+            - epic: Epic ID
+            - milestone: Milestone/Sprint ID
+            - assigned_to: User ID to assign to
+            - status: Status ID
+            - tags: List of tag strings
+
+    Returns:
+        UserStoryResponse: The created user story with:
+            - id: Numeric story ID
+            - subject: Story title
+            - project: Project ID
+            - And other metadata fields
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        ValueError: If project_id or subject is invalid.
+        TaigaException: If creation fails.
+
+    Example:
+        >>> story = create_user_story(
+        ...     session_id,
+        ...     42,
+        ...     "As a user, I want to login",
+        ...     description="User authentication feature"
+        ... )
+        >>> print(f"Created story {story['id']}: {story['subject']}")
+    """
     logger.info(
         f"Executing create_user_story '{subject}' in project {project_id}, session {session_id[:8]}..."
     )
@@ -462,8 +721,34 @@ def create_user_story(session_id: str, project_id: int, subject: str, **kwargs) 
 @mcp.tool(
     "get_user_story", description="Gets detailed information about a specific user story by its ID."
 )
-def get_user_story(session_id: str, user_story_id: int) -> Dict[str, Any]:
-    """Retrieves user story details by ID."""
+def get_user_story(session_id: str, user_story_id: int) -> UserStoryResponse:
+    """
+    Get detailed information about a specific user story.
+
+    Retrieves full details of a user story including description, status, assignments, etc.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        user_story_id: The numeric ID of the user story.
+
+    Returns:
+        UserStoryResponse: User story details including:
+            - id: Story ID
+            - subject: Story title
+            - description: Full description
+            - project: Project ID
+            - assigned_to: Assigned user ID (or null)
+            - status: Current status ID
+            - And other metadata fields
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        TaigaException: If the story doesn't exist or access denied.
+
+    Example:
+        >>> story = get_user_story(session_id, 123)
+        >>> print(f"{story['subject']} - {story.get('description')}")
+    """
     logger.info(f"Executing get_user_story ID {user_story_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
@@ -596,8 +881,27 @@ def get_user_story_statuses(session_id: str, project_id: int) -> List[Dict[str, 
 
 
 @mcp.tool("list_tasks", description="Lists tasks within a specific project, optionally filtered.")
-def list_tasks(session_id: str, project_id: int, **filters) -> List[Dict[str, Any]]:
-    """Lists tasks for a project. Optional filters like 'milestone', 'status', 'user_story', 'assigned_to' can be passed as keyword arguments."""
+def list_tasks(session_id: str, project_id: int, **filters) -> TaskList:
+    """
+    List all tasks in a project.
+
+    Retrieves tasks from a project with optional filtering by status, milestone, user story, assignee, etc.
+
+    Args:
+        session_id: The UUID session identifier from login.
+        project_id: The numeric ID of the project.
+        **filters: Optional filter parameters (milestone, status, user_story, assigned_to).
+
+    Returns:
+        TaskList: List of TaskResponse dictionaries for the project.
+
+    Raises:
+        PermissionError: If the session_id is invalid.
+        ValueError: If project_id is invalid.
+
+    Example:
+        >>> tasks = list_tasks(session_id, 42)
+    """
     logger.info(
         f"Executing list_tasks for project {project_id}, session {session_id[:8]}, filters: {filters}"
     )
@@ -769,7 +1073,7 @@ def unassign_task_from_user(session_id: str, task_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool("list_issues", description="Lists issues within a specific project, optionally filtered.")
-def list_issues(session_id: str, project_id: int, **filters) -> List[Dict[str, Any]]:
+def list_issues(session_id: str, project_id: int, **filters) -> IssueList:
     """Lists issues for a project. Optional filters like 'milestone', 'status', 'priority', 'severity', 'type', 'assigned_to' can be passed as kwargs."""
     logger.info(
         f"Executing list_issues for project {project_id}, session {session_id[:8]}, filters: {filters}"
@@ -1045,7 +1349,7 @@ def get_issue_types(session_id: str, project_id: int) -> List[Dict[str, Any]]:
 
 
 @mcp.tool("list_epics", description="Lists epics within a specific project, optionally filtered.")
-def list_epics(session_id: str, project_id: int, **filters) -> List[Dict[str, Any]]:
+def list_epics(session_id: str, project_id: int, **filters) -> EpicList:
     """Lists epics for a project. Optional filters like 'status', 'assigned_to' can be passed as keyword arguments."""
     logger.info(
         f"Executing list_epics for project {project_id}, session {session_id[:8]}, filters: {filters}"
@@ -1218,7 +1522,7 @@ def unassign_epic_from_user(session_id: str, epic_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool("list_milestones", description="Lists milestones (sprints) within a specific project.")
-def list_milestones(session_id: str, project_id: int) -> List[Dict[str, Any]]:
+def list_milestones(session_id: str, project_id: int) -> MilestoneList:
     """Lists milestones for a project."""
     logger.info(f"Executing list_milestones for project {project_id}, session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
@@ -1350,7 +1654,7 @@ def delete_milestone(session_id: str, milestone_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool("get_project_members", description="Lists members of a specific project.")
-def get_project_members(session_id: str, project_id: int) -> List[Dict[str, Any]]:
+def get_project_members(session_id: str, project_id: int) -> MemberList:
     """Retrieves the list of members for a project."""
     logger.info(
         f"Executing get_project_members for project {project_id}, session {session_id[:8]}..."
@@ -1415,7 +1719,7 @@ def invite_project_user(
 
 
 @mcp.tool("list_wiki_pages", description="Lists wiki pages within a specific project.")
-def list_wiki_pages(session_id: str, project_id: int) -> List[Dict[str, Any]]:
+def list_wiki_pages(session_id: str, project_id: int) -> WikiPageList:
     """Lists wiki pages for a project."""
     logger.info(f"Executing list_wiki_pages for project {project_id}, session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
@@ -1437,7 +1741,7 @@ def list_wiki_pages(session_id: str, project_id: int) -> List[Dict[str, Any]]:
 
 
 @mcp.tool("get_wiki_page", description="Gets a specific wiki page by its ID.")
-def get_wiki_page(session_id: str, wiki_page_id: int) -> Dict[str, Any]:
+def get_wiki_page(session_id: str, wiki_page_id: int) -> WikiPageResponse:
     """Retrieves wiki page details by ID."""
     logger.info(f"Executing get_wiki_page ID {wiki_page_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
@@ -1464,8 +1768,25 @@ def get_wiki_page(session_id: str, wiki_page_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool("logout", description="Invalidates the current session_id.")
-def logout(session_id: str) -> Dict[str, Any]:
-    """Logs out the current session, invalidating the session_id."""
+def logout(session_id: str) -> LogoutResponse:
+    """
+    Terminate an authenticated session.
+
+    Invalidates the provided session_id, preventing further use of this session for API calls.
+    This should be called when the client is done with Taiga operations to clean up resources.
+
+    Args:
+        session_id: The UUID session identifier returned from login.
+
+    Returns:
+        LogoutResponse: Dictionary containing:
+            - status: "logged_out" if successful, "session_not_found" if already invalid
+            - session_id: The session_id that was logged out
+
+    Example:
+        >>> result = logout(session_id)
+        >>> print(result["status"])  # "logged_out"
+    """
     logger.info(f"Executing logout for session {session_id[:8]}...")
     # Remove from dict, return None if not found
     client_wrapper = active_sessions.pop(session_id, None)  # Use consistent var name
@@ -1481,8 +1802,30 @@ def logout(session_id: str) -> Dict[str, Any]:
 @mcp.tool(
     "session_status", description="Checks if the provided session_id is currently active and valid."
 )
-def session_status(session_id: str) -> Dict[str, Any]:
-    """Checks the validity of the current session_id."""
+def session_status(session_id: str) -> SessionStatusResponse:
+    """
+    Check the current status of an authenticated session.
+
+    Validates whether a session_id is still active and the underlying Taiga token is valid.
+    Automatically cleans up expired or invalid sessions.
+
+    Args:
+        session_id: The UUID session identifier returned from login.
+
+    Returns:
+        SessionStatusResponse: Dictionary containing:
+            - status: "active", "inactive", or "error"
+            - session_id: The session_id being checked
+            - username: (optional) The authenticated username if status is "active"
+            - reason: (optional) Reason for inactive/error status (e.g., "token_invalid", "not_found")
+
+    Example:
+        >>> result = session_status(session_id)
+        >>> if result["status"] == "active":
+        ...     print(f"Logged in as: {result['username']}")
+        ... else:
+        ...     print("Session expired, please login again")
+    """
     logger.debug(f"Executing session_status check for session {session_id[:8]}...")
     client_wrapper = active_sessions.get(session_id)  # Use consistent var name
     if client_wrapper and client_wrapper.is_authenticated:

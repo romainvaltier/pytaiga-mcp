@@ -134,6 +134,24 @@ Environment variables (can be set in `.env` file):
 - `REQUEST_TIMEOUT`: API request timeout in seconds (default: 30)
 - `LOG_LEVEL`: Logging level (default: INFO)
 
+## Development Roadmap
+
+A comprehensive development roadmap is available in **`docs/roadmap/`** that outlines the complete path from MVP to production-ready software:
+
+- **5 Epics** organized by priority: Security Hardening, Code Quality, Testing, Features, Production Readiness
+- **23 User Stories** with acceptance criteria and story points (239 total points)
+- **8+ Sprints** scheduled over 16-20 weeks with team assignments
+- **3 Release Milestones**: v0.2.0 (MVP), v0.3.0 (Features), v1.0.0 (Production)
+
+**Start here**: [`docs/roadmap/README.md`](docs/roadmap/README.md) - provides role-based navigation for PMs, developers, tech leads, and executives.
+
+See [`docs/roadmap/`](docs/roadmap/) folder for:
+- `ROADMAP.md` - Complete technical specifications
+- `ROADMAP_VISUAL.md` - Visual timeline and diagrams
+- `SPRINT_PLANNING.md` - Sprint-by-sprint execution guide
+- `ROADMAP_INDEX.md` - Navigation and quick start
+- `ROADMAP_QUICK_REFERENCE.md` - One-page printable summary
+
 ## Project Structure
 ```
 src/
@@ -145,6 +163,15 @@ tests/
   ├── test_server.py     # Unit tests for server tools
   ├── test_integration.py # Integration tests
   └── conftest.py        # Pytest fixtures
+
+docs/
+  └── roadmap/           # Development roadmap documentation
+      ├── README.md                    # Entry point & navigation
+      ├── ROADMAP.md                   # Complete specs (5 epics, 23 stories)
+      ├── ROADMAP_VISUAL.md            # Visual timeline & diagrams
+      ├── SPRINT_PLANNING.md           # Sprint breakdown (8+ sprints)
+      ├── ROADMAP_INDEX.md             # Navigation guide
+      └── ROADMAP_QUICK_REFERENCE.md   # One-page summary
 
 pyproject.toml           # Project config, dependencies, tool settings
 ```

@@ -64,6 +64,82 @@ def _get_authenticated_client(session_id: str) -> TaigaClientWrapper:
     return client
 
 
+def _assign_resource_to_user(
+    session_id: str, resource_type: str, resource_id: int, user_id: int
+) -> Dict[str, Any]:
+    """
+    Generic helper function to assign a resource to a user.
+
+    Args:
+        session_id: The session ID for authentication
+        resource_type: The type of resource ('user_story', 'task', 'issue', 'epic')
+        resource_id: The ID of the resource to assign
+        user_id: The ID of the user to assign to
+
+    Returns:
+        The updated resource dictionary
+
+    Implementation Notes:
+        This is a factory function that consolidates duplication across
+        assign_user_story_to_user, assign_task_to_user, assign_issue_to_user,
+        and assign_epic_to_user.
+    """
+    # Validate inputs
+    validate_positive_integer(resource_id, "resource_id")
+    validate_positive_integer(user_id, "user_id")
+
+    # Route to the appropriate update function based on resource type
+    update_function_map = {
+        "user_story": update_user_story,
+        "task": update_task,
+        "issue": update_issue,
+        "epic": update_epic,
+    }
+
+    if resource_type not in update_function_map:
+        raise ValueError(f"Unknown resource type: {resource_type}")
+
+    update_func = update_function_map[resource_type]
+    return update_func(session_id, resource_id, assigned_to=user_id)
+
+
+def _unassign_resource_from_user(
+    session_id: str, resource_type: str, resource_id: int
+) -> Dict[str, Any]:
+    """
+    Generic helper function to unassign a resource from its current user.
+
+    Args:
+        session_id: The session ID for authentication
+        resource_type: The type of resource ('user_story', 'task', 'issue', 'epic')
+        resource_id: The ID of the resource to unassign
+
+    Returns:
+        The updated resource dictionary
+
+    Implementation Notes:
+        This is a factory function that consolidates duplication across
+        unassign_user_story_from_user, unassign_task_from_user,
+        unassign_issue_from_user, and unassign_epic_from_user.
+    """
+    # Validate inputs
+    validate_positive_integer(resource_id, "resource_id")
+
+    # Route to the appropriate update function based on resource type
+    update_function_map = {
+        "user_story": update_user_story,
+        "task": update_task,
+        "issue": update_issue,
+        "epic": update_epic,
+    }
+
+    if resource_type not in update_function_map:
+        raise ValueError(f"Unknown resource type: {resource_type}")
+
+    update_func = update_function_map[resource_type]
+    return update_func(session_id, resource_id, assigned_to=None)
+
+
 # --- MCP Tools ---
 
 
@@ -471,8 +547,7 @@ def assign_user_story_to_user(session_id: str, user_story_id: int, user_id: int)
     logger.info(
         f"Executing assign_user_story_to_user: US {user_story_id} -> User {user_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_user_story, assuming 'assigned_to' key works
-    return update_user_story(session_id, user_story_id, assigned_to=user_id)
+    return _assign_resource_to_user(session_id, "user_story", user_story_id, user_id)
 
 
 @mcp.tool(
@@ -484,8 +559,7 @@ def unassign_user_story_from_user(session_id: str, user_story_id: int) -> Dict[s
     logger.info(
         f"Executing unassign_user_story_from_user: US {user_story_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_user_story with assigned_to=None
-    return update_user_story(session_id, user_story_id, assigned_to=None)
+    return _unassign_resource_from_user(session_id, "user_story", user_story_id)
 
 
 @mcp.tool(
@@ -673,8 +747,7 @@ def assign_task_to_user(session_id: str, task_id: int, user_id: int) -> Dict[str
     logger.info(
         f"Executing assign_task_to_user: Task {task_id} -> User {user_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_task
-    return update_task(session_id, task_id, assigned_to=user_id)
+    return _assign_resource_to_user(session_id, "task", task_id, user_id)
 
 
 @mcp.tool(
@@ -683,8 +756,7 @@ def assign_task_to_user(session_id: str, task_id: int, user_id: int) -> Dict[str
 def unassign_task_from_user(session_id: str, task_id: int) -> Dict[str, Any]:
     """Unassigns a task."""
     logger.info(f"Executing unassign_task_from_user: Task {task_id}, session {session_id[:8]}...")
-    # Delegate to update_task
-    return update_task(session_id, task_id, assigned_to=None)
+    return _unassign_resource_from_user(session_id, "task", task_id)
 
 
 # @mcp.tool("get_task_statuses", description="Lists the available statuses for tasks within a specific project.")
@@ -843,8 +915,7 @@ def assign_issue_to_user(session_id: str, issue_id: int, user_id: int) -> Dict[s
     logger.info(
         f"Executing assign_issue_to_user: Issue {issue_id} -> User {user_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_issue
-    return update_issue(session_id, issue_id, assigned_to=user_id)
+    return _assign_resource_to_user(session_id, "issue", issue_id, user_id)
 
 
 @mcp.tool(
@@ -856,8 +927,7 @@ def unassign_issue_from_user(session_id: str, issue_id: int) -> Dict[str, Any]:
     logger.info(
         f"Executing unassign_issue_from_user: Issue {issue_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_issue
-    return update_issue(session_id, issue_id, assigned_to=None)
+    return _unassign_resource_from_user(session_id, "issue", issue_id)
 
 
 @mcp.tool(
@@ -1126,8 +1196,7 @@ def assign_epic_to_user(session_id: str, epic_id: int, user_id: int) -> Dict[str
     logger.info(
         f"Executing assign_epic_to_user: Epic {epic_id} -> User {user_id}, session {session_id[:8]}..."
     )
-    # Delegate to update_epic
-    return update_epic(session_id, epic_id, assigned_to=user_id)
+    return _assign_resource_to_user(session_id, "epic", epic_id, user_id)
 
 
 @mcp.tool(
@@ -1136,8 +1205,7 @@ def assign_epic_to_user(session_id: str, epic_id: int, user_id: int) -> Dict[str
 def unassign_epic_from_user(session_id: str, epic_id: int) -> Dict[str, Any]:
     """Unassigns an epic."""
     logger.info(f"Executing unassign_epic_from_user: Epic {epic_id}, session {session_id[:8]}...")
-    # Delegate to update_epic
-    return update_epic(session_id, epic_id, assigned_to=None)
+    return _unassign_resource_from_user(session_id, "epic", epic_id)
 
 
 # @mcp.tool("get_epic_statuses", description="Lists the available statuses for epics within a specific project.")

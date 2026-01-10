@@ -40,22 +40,23 @@ Sprint 9+ (Ongoing)        → Feature Completeness & Scale
 **Target Sprint**: 1-2
 **Objective**: Secure authentication, validate inputs, protect against attacks
 
-### US-1.1: Input Validation Framework
+### US-1.1: Input Validation Framework ✅
 **Priority**: 🔴 CRITICAL
 **Story Points**: 8
 **Assigned To**: TBD
+**Status**: COMPLETED (PR #1)
 
 **Description**:
 Implement comprehensive input validation across all tools to prevent invalid data from reaching Taiga API.
 
 **Acceptance Criteria**:
-- [ ] All integer parameters (IDs) validated to be positive integers
-- [ ] Email parameters validated using regex or email-validator library
-- [ ] String parameters validated for length (max 500-1000 chars depending on field)
-- [ ] All kwargs parameters whitelisted by resource type
-- [ ] Validation errors return clear, specific error messages
-- [ ] Input validation helper functions created and reused
-- [ ] Unit tests for validation functions
+- [x] All integer parameters (IDs) validated to be positive integers
+- [x] Email parameters validated using regex or email-validator library
+- [x] String parameters validated for length (max 500-1000 chars depending on field)
+- [x] All kwargs parameters whitelisted by resource type
+- [x] Validation errors return clear, specific error messages
+- [x] Input validation helper functions created and reused
+- [x] Unit tests for validation functions
 
 **Implementation Details**:
 ```python
@@ -68,13 +69,13 @@ Implement comprehensive input validation across all tools to prevent invalid dat
 ```
 
 **Subtasks**:
-- [ ] Create validators.py module
-- [ ] Add validation calls to all create/update tools
-- [ ] Add validation for IDs (project, user, task, issue, epic, milestone)
-- [ ] Add validation for email in invite_project_user
-- [ ] Add validation for kwargs in all update operations
-- [ ] Add unit tests for all validators
-- [ ] Update tool docstrings with validation info
+- [x] Create validators.py module
+- [x] Add validation calls to all create/update tools
+- [x] Add validation for IDs (project, user, task, issue, epic, milestone)
+- [x] Add validation for email in invite_project_user
+- [x] Add validation for kwargs in all update operations
+- [x] Add unit tests for all validators
+- [x] Update tool docstrings with validation info
 
 ---
 
@@ -148,19 +149,20 @@ Implement rate limiting on login endpoint to prevent brute force attacks.
 
 ---
 
-### US-1.4: HTTPS Enforcement
+### US-1.4: HTTPS Enforcement ✅
 **Priority**: 🟠 HIGH
 **Story Points**: 3
 **Assigned To**: TBD
+**Status**: COMPLETED (PR #2)
 
 **Description**:
 Ensure Taiga host URLs are HTTPS to prevent credential transmission over unencrypted connections.
 
 **Acceptance Criteria**:
-- [ ] Login rejects non-HTTPS URLs with clear error
-- [ ] Configuration option to disable check for local development (with warning)
-- [ ] Error message guides user to use HTTPS
-- [ ] Unit tests for URL validation
+- [x] Login rejects non-HTTPS URLs with clear error
+- [x] Configuration option to disable check for local development (with warning)
+- [x] Error message guides user to use HTTPS
+- [x] Unit tests for URL validation
 
 **Implementation Details**:
 ```python
@@ -171,27 +173,28 @@ if not host.startswith("https://"):
 ```
 
 **Subtasks**:
-- [ ] Add HTTPS validation in login
-- [ ] Add ALLOW_HTTP_TAIGA to .env.example
-- [ ] Add security warning to README
-- [ ] Add unit tests
+- [x] Add HTTPS validation in login
+- [x] Add ALLOW_HTTP_TAIGA to .env.example
+- [x] Add security warning to README
+- [x] Add unit tests
 
 ---
 
-### US-1.5: Secure Logging
+### US-1.5: Secure Logging ✅
 **Priority**: 🟡 MEDIUM
 **Story Points**: 3
 **Assigned To**: TBD
+**Status**: COMPLETED (PR #3)
 
 **Description**:
 Ensure sensitive information (session IDs, tokens) are not exposed in logs.
 
 **Acceptance Criteria**:
-- [ ] Session IDs truncated in all log messages (show only first 8 chars)
-- [ ] Authentication tokens never logged
-- [ ] User passwords never logged (already done, verify)
-- [ ] Email addresses in invites not logged at WARNING/ERROR (info level ok)
-- [ ] Consistent truncation function used
+- [x] Session IDs truncated in all log messages (show only first 8 chars)
+- [x] Authentication tokens never logged
+- [x] User passwords never logged (already done, verify)
+- [x] Email addresses in invites not logged at WARNING/ERROR (info level ok)
+- [x] Consistent truncation function used
 
 **Implementation Details**:
 ```python
@@ -200,11 +203,11 @@ def _truncate_session_id(session_id: str, length: int = 8) -> str:
 ```
 
 **Subtasks**:
-- [ ] Create logging utility function
-- [ ] Replace all session_id logging with truncated version
-- [ ] Audit all log statements for sensitive data
-- [ ] Add comment markers for sensitive data handling
-- [ ] Unit tests for logging
+- [x] Create logging utility function
+- [x] Replace all session_id logging with truncated version
+- [x] Audit all log statements for sensitive data
+- [x] Add comment markers for sensitive data handling
+- [x] Unit tests for logging
 
 ---
 
@@ -304,10 +307,11 @@ Remove all commented-out code and document missing features in TODO or GitHub is
 
 ---
 
-### US-2.4: Reduce Code Duplication in Assignment Operations
+### US-2.4: Reduce Code Duplication in Assignment Operations 🔄
 **Priority**: 🟡 MEDIUM
 **Story Points**: 3
 **Assigned To**: TBD
+**Status**: IN PROGRESS
 
 **Description**:
 Consolidate repeated assign/unassign operation implementations into reusable functions.

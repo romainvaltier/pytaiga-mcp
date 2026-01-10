@@ -152,6 +152,107 @@ See [`docs/roadmap/`](docs/roadmap/) folder for:
 - `ROADMAP_INDEX.md` - Navigation and quick start
 - `ROADMAP_QUICK_REFERENCE.md` - One-page printable summary
 
+## Git Workflow & Development Process
+
+The project uses **GitHub Flow** with a structured approach to ensure quality and traceability. All development must follow the defined workflow and integrate with the roadmap.
+
+### Quick Start
+- **For busy developers** (5-10 min read): See [`docs/WORKFLOW_QUICK_START.md`](docs/WORKFLOW_QUICK_START.md)
+- **For comprehensive details** (20-30 min read): See [`docs/CONTRIBUTING_WORKFLOW.md`](docs/CONTRIBUTING_WORKFLOW.md)
+
+### Branching Strategy
+
+The project uses **GitHub Flow** with type-prefixed branches:
+
+| Type | Pattern | Purpose | Example |
+|------|---------|---------|---------|
+| Feature | `feature/EPIC-#-description` | New feature for an epic | `feature/EPIC-1-input-validation` |
+| User Story | `feature/US-#-description` | Implementation of user story | `feature/US-1.1-password-validation` |
+| Bug Fix | `fix/description` | Fix for identified issue | `fix/session-bug` |
+| Test | `test/description` | Test additions or improvements | `test/session-tests` |
+| Refactor | `refactor/description` | Code refactoring | `refactor/api-consistency` |
+| Docs | `docs/description` | Documentation updates | `docs/roadmap-updates` |
+| Chore | `chore/description` | Build, config, deps | `chore/update-dependencies` |
+
+### Development Workflow
+
+All work follows this 8-step workflow:
+
+1. **Plan**: Choose a story from the current sprint (see `docs/roadmap/SPRINT_PLANNING.md`)
+2. **Create Branch**: `git checkout -b feature/EPIC-#-description`
+3. **Implement**: Write code following patterns in "Key Development Patterns" section below
+4. **Quality**: Run format, type check, lint, and tests before pushing
+5. **Create PR**: Push branch and create pull request on GitHub
+6. **Code Review**: Address reviewer comments and request approval
+7. **Merge**: Use "Squash and merge" to keep history clean
+8. **Update Roadmap**: Mark story as complete in `docs/roadmap/SPRINT_PLANNING.md`
+
+### Commit Message Format
+
+Use Conventional Commits format to link code to roadmap items:
+
+```
+feat(EPIC-1): short description (50 chars max)
+
+Optional detailed explanation of what and why.
+Keep to 72 characters per line.
+
+Closes: #123
+Epic: EPIC-1
+```
+
+**Types**: `feat`, `fix`, `test`, `refactor`, `docs`, `chore`, `style`
+
+### Definition of Done
+
+Every PR must satisfy the complete Definition of Done checklist:
+
+**Code Quality**:
+- [ ] Code formatted with `black` and `isort`
+- [ ] No type errors (`mypy` passes)
+- [ ] No lint errors (`flake8` passes)
+- [ ] Code follows existing patterns in `Key Development Patterns` section
+
+**Testing**:
+- [ ] Tests written for new functionality
+- [ ] All tests passing (`pytest`)
+- [ ] Code coverage >80% (check with `pytest --cov=src`)
+- [ ] Integration tests added for feature areas
+
+**Review & Documentation**:
+- [ ] PR reviewed and approved by at least one other developer
+- [ ] Documentation updated if applicable
+- [ ] Roadmap story marked as complete
+
+**Release Integration**:
+- [ ] PR links to roadmap epic/story
+- [ ] Commit message includes epic reference
+- [ ] No breaking changes without discussion
+
+### Quality Checklist Before Creating PR
+
+```bash
+# 1. Format code
+black src/
+isort src/
+
+# 2. Type check
+mypy src/
+
+# 3. Lint
+flake8 src/
+
+# 4. Test
+pytest tests/ -v --cov=src
+
+# 5. Update branch
+git fetch origin
+git rebase origin/master
+
+# 6. Verify no conflicts
+git status
+```
+
 ## Project Structure
 ```
 src/
@@ -165,13 +266,15 @@ tests/
   └── conftest.py        # Pytest fixtures
 
 docs/
-  └── roadmap/           # Development roadmap documentation
-      ├── README.md                    # Entry point & navigation
-      ├── ROADMAP.md                   # Complete specs (5 epics, 23 stories)
-      ├── ROADMAP_VISUAL.md            # Visual timeline & diagrams
-      ├── SPRINT_PLANNING.md           # Sprint breakdown (8+ sprints)
-      ├── ROADMAP_INDEX.md             # Navigation guide
-      └── ROADMAP_QUICK_REFERENCE.md   # One-page summary
+  ├── CONTRIBUTING_WORKFLOW.md          # Comprehensive workflow guide (30 min read)
+  ├── WORKFLOW_QUICK_START.md           # Quick reference for developers (5 min read)
+  └── roadmap/                          # Development roadmap documentation
+      ├── README.md                     # Entry point & navigation
+      ├── ROADMAP.md                    # Complete specs (5 epics, 23 stories)
+      ├── ROADMAP_VISUAL.md             # Visual timeline & diagrams
+      ├── SPRINT_PLANNING.md            # Sprint breakdown (8+ sprints)
+      ├── ROADMAP_INDEX.md              # Navigation guide
+      └── ROADMAP_QUICK_REFERENCE.md    # One-page summary
 
 pyproject.toml           # Project config, dependencies, tool settings
 ```

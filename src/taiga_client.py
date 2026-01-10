@@ -1,10 +1,13 @@
 # taiga_client.py
-from typing import Optional
 import logging
+import os
+from typing import Optional
+
 # Replace python-taiga import
 # from taiga import TaigaAPI
 # from taiga.exceptions import TaigaException
 from pytaigaclient import TaigaClient  # Import the new client
+
 # Assuming pytaigaclient also has a base exception
 from pytaigaclient.exceptions import TaigaException
 
@@ -31,26 +34,48 @@ class TaigaClientWrapper:
         """
         Authenticates with the Taiga instance using username and password.
         Uses pytaigaclient.
+
+        Enforces HTTPS for security. Can be disabled for local development with
+        ALLOW_HTTP_TAIGA=true environment variable.
         """
         try:
-            logger.info(
-                f"Attempting login for user '{username}' on {self.host}")
+            logger.info(f"Attempting login for user '{username}' on {self.host}")
+
+            # HTTPS Enforcement (US-1.4)
+            if not self.host.startswith("https://"):
+                allow_http = os.getenv("ALLOW_HTTP_TAIGA", "false").lower() == "true"
+                if not allow_http:
+                    error_msg = (
+                        "Taiga host must use HTTPS for security. "
+                        "Set ALLOW_HTTP_TAIGA=true to bypass for local development."
+                    )
+                    logger.error(f"HTTPS validation failed: {error_msg}")
+                    raise ValueError(error_msg)
+                else:
+                    logger.warning(
+                        f"HTTPS enforcement disabled via ALLOW_HTTP_TAIGA=true. "
+                        f"Connecting to {self.host} over HTTP is insecure!"
+                    )
+
             # Initialize the client here
             api_instance = TaigaClient(host=self.host)
             # Use the auth resource's login method
             api_instance.auth.login(username=username, password=password)
             self.api = api_instance
-            logger.info(
-                f"Login successful for user '{username}'. Auth token acquired.")
+            logger.info(f"Login successful for user '{username}'. Auth token acquired.")
             return True
+        except ValueError:
+            # Re-raise ValueError from HTTPS validation without wrapping
+            raise
         except TaigaException as e:
-            logger.error(
-                f"Taiga login failed for user '{username}': {e}", exc_info=False)
+            logger.error(f"Taiga login failed for user '{username}': {e}", exc_info=False)
             self.api = None
             raise e
         except Exception as e:
             logger.error(
-                f"An unexpected error occurred during login for user '{username}': {e}", exc_info=True)
+                f"An unexpected error occurred during login for user '{username}': {e}",
+                exc_info=True,
+            )
             self.api = None
             # Wrap unexpected errors in TaigaException if needed, or re-raise
             raise TaigaException(f"Unexpected login error: {e}")
@@ -70,12 +95,11 @@ class TaigaClientWrapper:
     def _ensure_authenticated(self):
         """Internal helper to check authentication before API calls."""
         if not self.is_authenticated:
-            logger.error(
-                "Action required authentication, but client is not logged in.")
+            logger.error("Action required authentication, but client is not logged in.")
             # Use a standard exception type that FastMCP might handle better,
             # or a custom one if needed. PermissionError fits well.
-            raise PermissionError(
-                "Client not authenticated. Please login first.")
+            raise PermissionError("Client not authenticated. Please login first.")
+
 
 # No changes needed to _ensure_authenticated or is_authenticated property logic,
 # just the types and method calls within login.

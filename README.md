@@ -100,6 +100,42 @@ TAIGA_TRANSPORT=sse
 LOG_LEVEL=DEBUG
 ```
 
+### Security Configuration
+
+#### HTTPS Enforcement
+
+By default, the bridge enforces HTTPS for all Taiga API connections to prevent credentials from being transmitted over unencrypted connections.
+
+**How it works:**
+- Login attempts to non-HTTPS URLs are rejected with a clear error message
+- The error message guides users to use HTTPS URLs
+- For local development, you can disable this check with `ALLOW_HTTP_TAIGA=true`
+
+**Environment Variable:**
+```bash
+# Disable HTTPS enforcement for local development (NOT RECOMMENDED for production)
+ALLOW_HTTP_TAIGA=true
+```
+
+**Example:**
+```python
+# This will be REJECTED by default:
+client.call_tool("login", {
+    "host": "http://taiga.example.com",  # ❌ Error: Must use HTTPS
+    "username": "user",
+    "password": "pass"
+})
+
+# This will be ACCEPTED:
+client.call_tool("login", {
+    "host": "https://taiga.example.com",  # ✅ Correct: Uses HTTPS
+    "username": "user",
+    "password": "pass"
+})
+```
+
+⚠️ **Security Warning:** Only disable HTTPS enforcement in development environments. Production systems must always use HTTPS.
+
 ## Usage
 
 ### With stdio mode

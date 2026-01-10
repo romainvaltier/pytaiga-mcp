@@ -330,6 +330,24 @@ The bridge implements several performance optimizations:
 3. **Retry Mechanism**: Automatically retries failed requests with exponential backoff
 4. **Session Cleanup**: Regularly cleans up expired sessions to free resources
 
+## 🗺️ Development Roadmap
+
+For a comprehensive development roadmap with detailed planning, epics, sprints, and user stories, please see the **[Roadmap Documentation](docs/roadmap/)**:
+
+- **📊 [ROADMAP_VISUAL.md](docs/roadmap/ROADMAP_VISUAL.md)** - Visual timeline, epics, and dependencies
+- **📋 [SPRINT_PLANNING.md](docs/roadmap/SPRINT_PLANNING.md)** - Detailed sprint breakdown and team planning
+- **📚 [ROADMAP.md](docs/roadmap/ROADMAP.md)** - Complete technical specifications and acceptance criteria
+- **🚀 [ROADMAP_INDEX.md](docs/roadmap/ROADMAP_INDEX.md)** - Navigation guide and quick start
+- **⚡ [ROADMAP_QUICK_REFERENCE.md](docs/roadmap/ROADMAP_QUICK_REFERENCE.md)** - One-page printable summary
+
+**Quick Facts**:
+- **Total Effort**: 239 story points across 5 epics
+- **Timeline**: 16-20 weeks (2 developers)
+- **Target**: Production-ready v1.0.0 with 85%+ code coverage and A-grade security
+- **Current Status**: MVP with 35% coverage; roadmap planned for hardening and expansion
+
+Start with [`docs/roadmap/README.md`](docs/roadmap/README.md) for navigation guidance.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

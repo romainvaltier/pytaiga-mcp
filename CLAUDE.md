@@ -125,6 +125,36 @@ isort --check-only src/
 - TaigaException from pytaigaclient should be caught and re-raised or handled
 - PermissionError is raised for invalid/expired session IDs
 
+### API Parameter Standardization
+
+The codebase follows strict conventions when calling pytaigaclient methods. These patterns are enforced by the pytaigaclient library and must be followed consistently.
+
+#### LIST Operations
+- **Standard**: Use `project_id=project_id` for filtering
+- **Exception**: `milestones.list(project=project_id)` - library enforces `project=`
+- **Example**: `user_stories.list(project_id=123, status=1)`
+- **Rationale**: Named parameters are explicit and self-documenting; aligns with Taiga API query parameter naming
+
+#### GET Operations
+- **Standard (positional)**: `user_stories.get(resource_id)` - most resources accept positional IDs
+- **Exception (named)**: `projects.get(project_id=project_id)` - library requires named parameter
+- **Rationale**: Projects library enforces named parameter; others accept positional for brevity
+
+#### UPDATE Operations
+- **Projects**: `projects.update(project_id=id, version=v, project_data=dict)`
+- **All Others**: `resource.edit(resource_id=id, version=v, **kwargs)`
+- **Rationale**: Library enforces different method signatures (`update()` vs `edit()`)
+
+#### CREATE Operations
+- **Standard**: `resource.create(project=project_id, **kwargs)`
+- **Rationale**: Library convention (all resources use this pattern)
+
+#### DELETE Operations
+- **Standard**: `resource.delete(id=resource_id, version=version)`
+- **Rationale**: Consistent across all resources
+
+**Important**: When adding new operations or resources, verify the expected parameter format with pytaigaclient documentation to ensure consistency with these patterns.
+
 ## Configuration
 
 Environment variables (can be set in `.env` file):

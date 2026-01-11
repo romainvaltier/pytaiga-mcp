@@ -67,24 +67,28 @@ class TestTaigaTools:
         """Test update_project functionality"""
         session_id, mock_client = session_setup
 
-        # Setup mock project
-        mock_project = MagicMock()
-        mock_project.id = 123
-        mock_project.name = "Old Name"
+        # Setup mock project for get_resource
+        current_project = {"id": 123, "description": "Old Description", "version": 1}
+        updated_project = {"id": 123, "description": "New Description", "version": 2}
 
-        # Setup allowed parameters for the project model
-        mock_client.api.projects.instance = MagicMock()
-        mock_client.api.projects.instance.allowed_params = ["name", "description"]
+        # Setup get_resource return (used to fetch current project and version)
+        mock_client.get_resource.return_value = current_project
 
-        # Setup get project return
-        mock_client.api.projects.get.return_value = mock_project
+        # Setup projects.update return
+        mock_client.api.projects.update.return_value = updated_project
 
-        # Update the project name
-        result = src.server.update_project(session_id, 123, name="New Name")
+        # Update the project description (allowed field)
+        result = src.server.update_project(session_id, 123, description="New Description")
 
-        # Verify the update was called
-        mock_project.update.assert_called_once()
-        assert mock_project.name == "New Name"
+        # Verify get_resource was called to fetch current project
+        mock_client.get_resource.assert_called_once_with("project", 123)
+
+        # Verify update was called with correct parameters
+        mock_client.api.projects.update.assert_called_once_with(
+            project_id=123, version=1, project_data={"description": "New Description"}
+        )
+
+        assert result["description"] == "New Description"
 
     def test_list_user_stories(self, session_setup):
         """Test list_user_stories functionality"""

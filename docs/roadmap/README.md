@@ -17,6 +17,21 @@ Complete development roadmap for the Taiga MCP Bridge project, from MVP to produ
 
 ---
 
+### 📄 [`PRD.md`](PRD.md)
+**Best for**: Executive summary, MVP scope, success criteria, implementation phases
+**Read Time**: 20-30 minutes
+**Contains**:
+- Executive summary and mission
+- Target users and core principles
+- MVP scope (in-scope ✅ and out-of-scope ❌)
+- User stories with acceptance criteria
+- Tools and features specification
+- Implementation phases (4 phases)
+- Risks & mitigations
+- Architecture diagrams
+
+---
+
 ### 📊 [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md)
 **Best for**: Visual understanding, timeline overview, diagrams
 **Read Time**: 15-20 minutes
@@ -70,27 +85,31 @@ Complete development roadmap for the Taiga MCP Bridge project, from MVP to produ
 ## 🎯 Quick Navigation by Role
 
 ### 👔 **Project Manager / Product Manager**
-1. Read [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) (10 min)
-2. Review [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) (15 min)
-3. Use [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md) for sprint management
-4. Reference [`ROADMAP.md`](ROADMAP.md) for detailed specs
+1. Read [`PRD.md`](PRD.md) - Executive summary and scope (20 min)
+2. Review [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) for navigation (10 min)
+3. Review [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) for timeline (15 min)
+4. Use [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md) for sprint management
+5. Reference [`ROADMAP.md`](ROADMAP.md) for detailed specs
 
 ### 👨‍💻 **Developer / Engineer**
-1. Start with [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) for context (10 min)
-2. Find your sprint in [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
-3. Read your assigned user stories in [`ROADMAP.md`](ROADMAP.md)
-4. Review Definition of Done in [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
+1. Start with [`PRD.md`](PRD.md) to understand requirements (20 min)
+2. Read [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) for context (10 min)
+3. Find your sprint in [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
+4. Read your assigned user stories in [`ROADMAP.md`](ROADMAP.md)
+5. Review Definition of Done in [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
 
 ### 🏗️ **Tech Lead / Engineering Manager**
-1. Review [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) for dependencies (15 min)
-2. Use [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md) for team coordination
-3. Reference [`ROADMAP.md`](ROADMAP.md) for technical details
-4. Monitor metrics from [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
+1. Review [`PRD.md`](PRD.md) for architecture and scope (20 min)
+2. Review [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) for dependencies (15 min)
+3. Use [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md) for team coordination
+4. Reference [`ROADMAP.md`](ROADMAP.md) for technical details
+5. Monitor metrics from [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
 
 ### 👨‍💼 **Executive / Stakeholder**
-1. Quick read [`ROADMAP_QUICK_REFERENCE.md`](ROADMAP_QUICK_REFERENCE.md) (5 min)
-2. Overview [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) (10 min)
-3. Check FAQ in [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) (5 min)
+1. Read [`PRD.md`](PRD.md) - Executive Summary section (10 min)
+2. Quick read [`ROADMAP_QUICK_REFERENCE.md`](ROADMAP_QUICK_REFERENCE.md) (5 min)
+3. Overview [`ROADMAP_VISUAL.md`](ROADMAP_VISUAL.md) (10 min)
+4. Check FAQ in [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md) (5 min)
 
 ---
 

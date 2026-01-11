@@ -1,5 +1,7 @@
 # Taiga MCP Bridge - Visual Roadmap & Epic Overview
 
+> 📄 **See Also**: For executive summary, see [`PRD.md`](PRD.md) | For detailed specs, see [`ROADMAP.md`](ROADMAP.md) | For sprint planning, see [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
+
 ---
 
 ## 🎯 At a Glance

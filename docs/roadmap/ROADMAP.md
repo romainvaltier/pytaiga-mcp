@@ -3,6 +3,9 @@
 **Document Status**: Created from comprehensive code review (2026-01-10)
 **Target**: Production-ready MCP bridge for Taiga project management integration
 
+> 📄 **See Also**: For executive summary and MVP scope, see [`PRD.md`](PRD.md)
+> For sprint planning, see [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md)
+
 ---
 
 ## 📋 Table of Contents

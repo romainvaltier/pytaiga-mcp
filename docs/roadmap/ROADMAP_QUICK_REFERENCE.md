@@ -2,6 +2,8 @@
 
 **Print this page or save as PDF for quick reference**
 
+> 📄 **For more details**: [`PRD.md`](PRD.md) | [`ROADMAP.md`](ROADMAP.md) | [`SPRINT_PLANNING.md`](SPRINT_PLANNING.md) | [`ROADMAP_INDEX.md`](ROADMAP_INDEX.md)
+
 ---
 
 ## 📊 PROJECT OVERVIEW

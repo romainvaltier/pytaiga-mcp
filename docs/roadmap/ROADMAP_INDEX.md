@@ -15,6 +15,7 @@ This directory contains a complete roadmap and planning package for taking the T
 
 | Document | Purpose | Audience | Format |
 |----------|---------|----------|--------|
+| **PRD.md** | Product Requirements Document - Executive summary, features, success criteria | Everyone | Comprehensive (25KB) |
 | **ROADMAP.md** | Detailed roadmap with all epics and user stories | Developers, PMs | Comprehensive (40KB) |
 | **SPRINT_PLANNING.md** | Sprint-by-sprint breakdown and team planning | Dev Leads, PMs | Structured (20KB) |
 | **ROADMAP_VISUAL.md** | Visual summaries and quick references | Everyone | Diagrams + Text (15KB) |
@@ -23,6 +24,14 @@ This directory contains a complete roadmap and planning package for taking the T
 ---
 
 ## 🎯 Quick Navigation
+
+### I want the executive summary
+→ Read: **PRD.md** (15-20 min read)
+- Executive summary and mission
+- Target users and MVP scope
+- Tools and features overview
+- Success criteria
+- Implementation phases
 
 ### I want to understand the big picture
 → Read: **ROADMAP_VISUAL.md** (5-10 min read)

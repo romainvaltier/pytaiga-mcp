@@ -5,6 +5,9 @@
 **Total Estimated Story Points**: 195 points
 **Sprints**: 2-week iterations (8 sprints planned)
 
+> 📄 **See Also**: For executive summary and MVP scope, see [`PRD.md`](PRD.md)
+> For complete technical specifications, see [`ROADMAP.md`](ROADMAP.md)
+
 ---
 
 ## 📅 Sprint Schedule

@@ -119,16 +119,28 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 ### User Stories
 
-| ID | Title | Points | Assigned | Status |
-|----|-------|--------|----------|--------|
-| US-2.2 | Consistent Resource Access Patterns | 5 | TBD | Todo |
-| US-2.3 | Remove Commented-Out Code | 2 | TBD | Todo |
-| US-3.1 | Session Validation Test Suite | 8 | TBD | Todo |
-| US-3.2 | Error Handling Test Suite | 13 | TBD | Todo |
+| ID | Title | Points | Assigned | Status | PR |
+|----|-------|--------|----------|--------|--------|
+| US-2.2 | Consistent Resource Access Patterns | 5 | Claude | ✅ Merged | #9 |
+| US-2.3 | Remove Commented-Out Code | 2 | TBD | Todo | - |
+| US-3.1 | Session Validation Test Suite | 8 | TBD | Todo | - |
+| US-3.2 | Error Handling Test Suite | 13 | TBD | Todo | - |
 
 **Sprint Goal**: Improve code consistency and begin comprehensive testing
 
 **Blocking Dependencies**: ✅ Sprint 1-2 Complete - Ready to begin
+
+**Deliverables**:
+
+**US-2.2 (In Progress - Just Completed)**:
+- RESOURCE_MAPPING constant mapping 7 resource types to pytaigaclient patterns (src/taiga_client.py)
+- get_resource() unified getter method handling named/positional parameter variations
+- Replaced 19 direct API get() calls in server.py with get_resource() wrapper
+- Added 10+ comprehensive tests validating resource access patterns
+- Updated CLAUDE.md with detailed "Resource Access Patterns (US-2.2)" documentation
+- All tests passing: 18/19 (1 pre-existing failure in test_update_project unrelated to US-2.2)
+- Code formatted with black and isort
+- Benefits: Centralizes pytaigaclient quirks, simplifies testing, enables future extensibility
 
 ---
 

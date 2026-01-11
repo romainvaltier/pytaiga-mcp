@@ -157,14 +157,143 @@ class TestTaigaTools:
         # Verify called with project_id parameter (not project=)
         mock_client.api.tasks.list.assert_called_once_with(project_id=123)
 
-    def test_get_project_uses_named_parameter(self, session_setup):
-        """Verify projects.get uses named project_id= parameter"""
+    def test_get_project_uses_unified_accessor(self, session_setup):
+        """Verify get_project uses unified get_resource accessor (US-2.2)"""
         session_id, mock_client = session_setup
-        mock_project = MagicMock()
-        mock_project.id = 123
-        mock_client.api.projects.get.return_value = mock_project
+        mock_project = {"id": 123, "name": "Test"}
+        mock_client.get_resource = MagicMock(return_value=mock_project)
 
-        src.server.get_project(session_id, 123)
+        result = src.server.get_project(session_id, 123)
 
-        # Verify called with named project_id parameter
-        mock_client.api.projects.get.assert_called_once_with(project_id=123)
+        # Verify called with get_resource wrapper
+        mock_client.get_resource.assert_called_once_with("project", 123)
+        assert result["id"] == 123
+
+
+# --- Tests for US-2.2: Consistent Resource Access Patterns ---
+
+
+class TestResourceAccessPatterns:
+    """Test suite for unified resource access patterns (US-2.2)."""
+
+    @pytest.fixture
+    def wrapper_with_auth(self):
+        """Create authenticated TaigaClientWrapper for testing."""
+        wrapper = TaigaClientWrapper("https://test.com")
+        wrapper.api = MagicMock()
+        wrapper.api.auth_token = "test-token"
+        return wrapper
+
+    def test_get_resource_project_uses_named_parameter(self, wrapper_with_auth):
+        """Verify get_resource uses named parameter for projects."""
+        wrapper_with_auth.api.projects.get.return_value = {"id": 123, "name": "Test"}
+
+        result = wrapper_with_auth.get_resource("project", 123)
+
+        # Verify named parameter used
+        wrapper_with_auth.api.projects.get.assert_called_once_with(project_id=123)
+        assert result["id"] == 123
+
+    def test_get_resource_user_story_uses_positional_parameter(self, wrapper_with_auth):
+        """Verify get_resource uses positional parameter for user stories."""
+        wrapper_with_auth.api.user_stories.get.return_value = {
+            "id": 456,
+            "subject": "Story",
+        }
+
+        result = wrapper_with_auth.get_resource("user_story", 456)
+
+        # Verify positional parameter used
+        wrapper_with_auth.api.user_stories.get.assert_called_once_with(456)
+        assert result["id"] == 456
+
+    def test_get_resource_task(self, wrapper_with_auth):
+        """Verify get_resource works for tasks."""
+        wrapper_with_auth.api.tasks.get.return_value = {"id": 789, "subject": "Task"}
+
+        result = wrapper_with_auth.get_resource("task", 789)
+
+        wrapper_with_auth.api.tasks.get.assert_called_once_with(789)
+        assert result["id"] == 789
+
+    def test_get_resource_issue(self, wrapper_with_auth):
+        """Verify get_resource works for issues."""
+        wrapper_with_auth.api.issues.get.return_value = {"id": 101, "subject": "Issue"}
+
+        result = wrapper_with_auth.get_resource("issue", 101)
+
+        wrapper_with_auth.api.issues.get.assert_called_once_with(101)
+        assert result["id"] == 101
+
+    def test_get_resource_epic(self, wrapper_with_auth):
+        """Verify get_resource works for epics."""
+        wrapper_with_auth.api.epics.get.return_value = {"id": 202, "name": "Epic"}
+
+        result = wrapper_with_auth.get_resource("epic", 202)
+
+        wrapper_with_auth.api.epics.get.assert_called_once_with(202)
+        assert result["id"] == 202
+
+    def test_get_resource_milestone(self, wrapper_with_auth):
+        """Verify get_resource works for milestones."""
+        wrapper_with_auth.api.milestones.get.return_value = {
+            "id": 303,
+            "name": "Milestone",
+        }
+
+        result = wrapper_with_auth.get_resource("milestone", 303)
+
+        wrapper_with_auth.api.milestones.get.assert_called_once_with(303)
+        assert result["id"] == 303
+
+    def test_get_resource_wiki_page(self, wrapper_with_auth):
+        """Verify get_resource works for wiki pages."""
+        wrapper_with_auth.api.wiki.get.return_value = {"id": 404, "title": "Page"}
+
+        result = wrapper_with_auth.get_resource("wiki_page", 404)
+
+        wrapper_with_auth.api.wiki.get.assert_called_once_with(404)
+        assert result["id"] == 404
+
+    def test_get_resource_invalid_type_raises_error(self, wrapper_with_auth):
+        """Verify invalid resource type raises ValueError."""
+        with pytest.raises(ValueError) as exc_info:
+            wrapper_with_auth.get_resource("invalid_type", 123)
+
+        assert "Unknown resource type 'invalid_type'" in str(exc_info.value)
+        assert "Valid types:" in str(exc_info.value)
+        assert "project" in str(exc_info.value)
+
+    def test_get_resource_requires_authentication(self):
+        """Verify get_resource enforces authentication."""
+        wrapper = TaigaClientWrapper("https://test.com")
+        wrapper.api = None  # Not authenticated
+
+        with pytest.raises(PermissionError) as exc_info:
+            wrapper.get_resource("project", 123)
+
+        assert "not authenticated" in str(exc_info.value).lower()
+
+    def test_get_resource_all_types_in_mapping(self, wrapper_with_auth):
+        """Verify all resource types in RESOURCE_MAPPING work correctly."""
+        from src.taiga_client import RESOURCE_MAPPING
+
+        # Test each resource type has expected configuration
+        for resource_type, config in RESOURCE_MAPPING.items():
+            assert "accessor" in config
+            assert "get_pattern" in config
+            assert "id_param" in config
+            assert config["get_pattern"] in ("named", "positional")
+
+            # Create mock for this resource
+            accessor_name = config["accessor"]
+            mock_resource = MagicMock()
+            mock_resource.get.return_value = {"id": 999, "type": resource_type}
+            setattr(wrapper_with_auth.api, accessor_name, mock_resource)
+
+            # Call get_resource
+            result = wrapper_with_auth.get_resource(resource_type, 999)
+
+            # Verify result
+            assert result["id"] == 999
+            mock_resource.get.assert_called()

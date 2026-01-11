@@ -14,6 +14,48 @@ from pytaigaclient.exceptions import TaigaException
 # Ensure logger is named correctly for hierarchy
 logger = logging.getLogger(__name__)
 
+# --- Resource Type Mapping for Consistent Access Patterns (US-2.2) ---
+# Maps MCP resource names to pytaigaclient resource accessor names and parameter patterns.
+# This centralizes knowledge about pytaigaclient API variations (named vs positional parameters).
+# Used by get_resource() method to provide unified resource retrieval interface.
+RESOURCE_MAPPING = {
+    "project": {
+        "accessor": "projects",
+        "get_pattern": "named",  # projects.get(project_id=id)
+        "id_param": "project_id",
+    },
+    "user_story": {
+        "accessor": "user_stories",
+        "get_pattern": "positional",  # user_stories.get(id)
+        "id_param": "user_story_id",
+    },
+    "task": {
+        "accessor": "tasks",
+        "get_pattern": "positional",
+        "id_param": "task_id",
+    },
+    "issue": {
+        "accessor": "issues",
+        "get_pattern": "positional",
+        "id_param": "issue_id",
+    },
+    "epic": {
+        "accessor": "epics",
+        "get_pattern": "positional",
+        "id_param": "epic_id",
+    },
+    "milestone": {
+        "accessor": "milestones",
+        "get_pattern": "positional",
+        "id_param": "milestone_id",
+    },
+    "wiki_page": {
+        "accessor": "wiki",
+        "get_pattern": "positional",
+        "id_param": "wiki_page_id",
+    },
+}
+
 
 class TaigaClientWrapper:
     """
@@ -99,6 +141,64 @@ class TaigaClientWrapper:
             # Use a standard exception type that FastMCP might handle better,
             # or a custom one if needed. PermissionError fits well.
             raise PermissionError("Client not authenticated. Please login first.")
+
+    def get_resource(self, resource_type: str, resource_id: int):
+        """
+        Unified resource getter handling pytaigaclient parameter variations (US-2.2).
+
+        Provides a consistent interface for retrieving any Taiga resource type,
+        abstracting away the differences in how pytaigaclient requires parameters
+        (some resources use named parameters, others use positional).
+
+        Args:
+            resource_type: Resource type key from RESOURCE_MAPPING.
+                          Valid values: 'project', 'user_story', 'task', 'issue',
+                          'epic', 'milestone', 'wiki_page'
+            resource_id: Integer ID of the resource to retrieve
+
+        Returns:
+            Resource object from pytaigaclient (dict-like response)
+
+        Raises:
+            ValueError: If resource_type is not recognized or not in RESOURCE_MAPPING
+            TaigaException: If API call fails (raised from pytaigaclient)
+            PermissionError: If client not authenticated
+
+        Example:
+            >>> client.get_resource("project", 123)
+            {'id': 123, 'name': 'My Project', ...}
+            >>> client.get_resource("user_story", 456)
+            {'id': 456, 'subject': 'User Story', ...}
+        """
+        self._ensure_authenticated()
+
+        # Validate resource type
+        if resource_type not in RESOURCE_MAPPING:
+            valid_types = ", ".join(RESOURCE_MAPPING.keys())
+            raise ValueError(
+                f"Unknown resource type '{resource_type}'. " f"Valid types: {valid_types}"
+            )
+
+        # Get resource configuration
+        resource_config = RESOURCE_MAPPING[resource_type]
+        accessor_name = resource_config["accessor"]
+        get_pattern = resource_config["get_pattern"]
+        id_param = resource_config["id_param"]
+
+        # Get the resource accessor from pytaigaclient
+        resource_accessor = getattr(self.api, accessor_name)
+
+        # Call get() with appropriate parameter pattern
+        if get_pattern == "named":
+            # Projects use: projects.get(project_id=id)
+            logger.debug(
+                f"Calling {accessor_name}.get({id_param}={resource_id}) with named parameter"
+            )
+            return resource_accessor.get(**{id_param: resource_id})
+        else:
+            # Others use: resource.get(id) with positional parameter
+            logger.debug(f"Calling {accessor_name}.get({resource_id}) with positional parameter")
+            return resource_accessor.get(resource_id)
 
 
 # No changes needed to _ensure_authenticated or is_authenticated property logic,

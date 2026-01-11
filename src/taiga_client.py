@@ -3,15 +3,9 @@ import logging
 import os
 from typing import Optional
 
-# Replace python-taiga import
-# from taiga import TaigaAPI
-# from taiga.exceptions import TaigaException
 from pytaigaclient import TaigaClient  # Import the new client
-
-# Assuming pytaigaclient also has a base exception
 from pytaigaclient.exceptions import TaigaException
 
-# Ensure logger is named correctly for hierarchy
 logger = logging.getLogger(__name__)
 
 # --- Resource Type Mapping for Consistent Access Patterns (US-2.2) ---
@@ -122,12 +116,6 @@ class TaigaClientWrapper:
             # Wrap unexpected errors in TaigaException if needed, or re-raise
             raise TaigaException(f"Unexpected login error: {e}")
 
-    # Add method for token authentication if needed by pytaigaclient
-    # def set_token(self, token: str, token_type: str = "Bearer"):
-    #     logger.info(f"Initializing TaigaClient with token on {self.host}")
-    #     self.api = TaigaClient(host=self.host, auth_token=token, token_type=token_type)
-    #     logger.info("TaigaClient initialized with token.")
-
     @property
     def is_authenticated(self) -> bool:
         """Checks if the client is currently authenticated (has an API instance with a token)."""
@@ -199,7 +187,3 @@ class TaigaClientWrapper:
             # Others use: resource.get(id) with positional parameter
             logger.debug(f"Calling {accessor_name}.get({resource_id}) with positional parameter")
             return resource_accessor.get(resource_id)
-
-
-# No changes needed to _ensure_authenticated or is_authenticated property logic,
-# just the types and method calls within login.

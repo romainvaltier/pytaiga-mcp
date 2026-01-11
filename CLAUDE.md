@@ -155,6 +155,54 @@ The codebase follows strict conventions when calling pytaigaclient methods. Thes
 
 **Important**: When adding new operations or resources, verify the expected parameter format with pytaigaclient documentation to ensure consistency with these patterns.
 
+### Resource Access Patterns (US-2.2)
+
+All resource retrieval (GET operations) in the codebase uses a unified accessor pattern via `TaigaClientWrapper.get_resource()`. This provides a consistent interface across all resource types while abstracting away pytaigaclient library variations (named vs positional parameters).
+
+**Usage Pattern**:
+```python
+# In server.py MCP tools
+taiga_client = _get_authenticated_client(session_id)
+
+# Retrieve any resource type using the same pattern
+project = taiga_client.get_resource("project", 123)
+user_story = taiga_client.get_resource("user_story", 456)
+task = taiga_client.get_resource("task", 789)
+issue = taiga_client.get_resource("issue", 101)
+epic = taiga_client.get_resource("epic", 202)
+milestone = taiga_client.get_resource("milestone", 303)
+wiki_page = taiga_client.get_resource("wiki_page", 404)
+```
+
+**Supported Resource Types**:
+- `"project"` - Taiga projects (uses named parameter internally)
+- `"user_story"` - User stories (uses positional parameter internally)
+- `"task"` - Tasks (uses positional parameter internally)
+- `"issue"` - Issues (uses positional parameter internally)
+- `"epic"` - Epics (uses positional parameter internally)
+- `"milestone"` - Milestones (uses positional parameter internally)
+- `"wiki_page"` - Wiki pages (uses positional parameter internally)
+
+**Implementation Details**:
+- Located in `src/taiga_client.py`: `TaigaClientWrapper.get_resource(resource_type, resource_id)`
+- Uses `RESOURCE_MAPPING` dictionary to centralize parameter format knowledge
+- Automatically handles named vs positional parameter variations based on pytaigaclient requirements
+- Includes comprehensive logging for debugging API calls
+- Validates resource types and raises ValueError for unknown types
+- Enforces authentication requirement via `_ensure_authenticated()`
+
+**Do NOT**:
+- Call `taiga_client.api.{resource}.get()` directly - always use `get_resource()`
+- Hardcode parameter patterns - they may change based on library updates
+- Mix direct API calls with `get_resource()` calls for the same resource type
+
+**Why This Pattern?**:
+- Centralizes pytaigaclient API quirks and variations in one place
+- Makes the codebase easier to maintain and update
+- Provides clear, consistent interface for developers
+- Simplifies testing and mocking (test one method vs seven)
+- Enables future extensibility (can add similar wrappers for create, update, delete)
+
 ## Configuration
 
 Environment variables (can be set in `.env` file):

@@ -755,8 +755,8 @@ def get_project(session_id: str, project_id: int) -> ProjectResponse:
     logger.info(f"Executing get_project ID {project_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
-        # Use pytaigaclient syntax: client.resource.get(project_id=project_id)
-        project = taiga_client_wrapper.api.projects.get(project_id=project_id)
+        # Use unified resource accessor (US-2.2)
+        project = taiga_client_wrapper.get_resource("project", project_id)
         # return project.to_dict() # Remove .to_dict()
         return project  # Return directly
     except TaigaException as e:
@@ -919,10 +919,10 @@ def update_project(session_id: str, project_id: int, **kwargs) -> ProjectRespons
         if not kwargs:
             logger.info(f"No fields provided for update on project {project_id}")
             # Return current state if no updates provided
-            return taiga_client_wrapper.api.projects.get(project_id=project_id)
+            return taiga_client_wrapper.get_resource("project", project_id)
 
         # First fetch the project to get its current version
-        current_project = taiga_client_wrapper.api.projects.get(project_id=project_id)
+        current_project = taiga_client_wrapper.get_resource("project", project_id)
         version = current_project.get("version")
         if not version:
             raise ValueError(f"Could not determine version for project {project_id}")
@@ -1166,8 +1166,8 @@ def get_user_story(session_id: str, user_story_id: int) -> UserStoryResponse:
     logger.info(f"Executing get_user_story ID {user_story_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
-        # User stories expects user_story_id as a positional argument
-        story = taiga_client_wrapper.api.user_stories.get(user_story_id)
+        # Use unified resource accessor (US-2.2)
+        story = taiga_client_wrapper.get_resource("user_story", user_story_id)
         # return story.to_dict() # Remove .to_dict()
         return story  # Return directly
     except TaigaException as e:
@@ -1196,10 +1196,10 @@ def update_user_story(session_id: str, user_story_id: int, **kwargs) -> Dict[str
         # Use pytaigaclient update pattern: client.resource.edit for partial updates
         if not kwargs:
             logger.info(f"No fields provided for update on user story {user_story_id}")
-            return taiga_client_wrapper.api.user_stories.get(user_story_id)
+            return taiga_client_wrapper.get_resource("user_story", user_story_id)
 
         # Get current user story data to retrieve version
-        current_story = taiga_client_wrapper.api.user_stories.get(user_story_id)
+        current_story = taiga_client_wrapper.get_resource("user_story", user_story_id)
         version = current_story.get("version")
         if not version:
             raise ValueError(f"Could not determine version for user story {user_story_id}")
@@ -1372,7 +1372,7 @@ def get_task(session_id: str, task_id: int) -> Dict[str, Any]:
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
         # Tasks expects task_id as a positional argument
-        task = taiga_client_wrapper.api.tasks.get(task_id)
+        task = taiga_client_wrapper.get_resource("task", task_id)
         # return task.to_dict() # Remove .to_dict()
         return task  # Return directly
     except TaigaException as e:
@@ -1411,10 +1411,10 @@ def update_task(session_id: str, task_id: int, **kwargs) -> Dict[str, Any]:
         # Use pytaigaclient edit pattern for partial updates
         if not kwargs:
             logger.info(f"No fields provided for update on task {task_id}")
-            return taiga_client_wrapper.api.tasks.get(task_id)
+            return taiga_client_wrapper.get_resource("task", task_id)
 
         # Get current task data to retrieve version
-        current_task = taiga_client_wrapper.api.tasks.get(task_id)
+        current_task = taiga_client_wrapper.get_resource("task", task_id)
         version = current_task.get("version")
         if not version:
             raise ValueError(f"Could not determine version for task {task_id}")
@@ -1558,7 +1558,7 @@ def get_issue(session_id: str, issue_id: int) -> Dict[str, Any]:
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
         # Issues expects issue_id as a positional argument
-        issue = taiga_client_wrapper.api.issues.get(issue_id)
+        issue = taiga_client_wrapper.get_resource("issue", issue_id)
         # return issue.to_dict() # Remove .to_dict()
         return issue  # Return directly
     except TaigaException as e:
@@ -1587,10 +1587,10 @@ def update_issue(session_id: str, issue_id: int, **kwargs) -> Dict[str, Any]:
         # Use pytaigaclient edit pattern for partial updates
         if not kwargs:
             logger.info(f"No fields provided for update on issue {issue_id}")
-            return taiga_client_wrapper.api.issues.get(issue_id)
+            return taiga_client_wrapper.get_resource("issue", issue_id)
 
         # Get current issue data to retrieve version
-        current_issue = taiga_client_wrapper.api.issues.get(issue_id)
+        current_issue = taiga_client_wrapper.get_resource("issue", issue_id)
         version = current_issue.get("version")
         if not version:
             raise ValueError(f"Could not determine version for issue {issue_id}")
@@ -1821,7 +1821,7 @@ def get_epic(session_id: str, epic_id: int) -> Dict[str, Any]:
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
         # Epics expects epic_id as a positional argument
-        epic = taiga_client_wrapper.api.epics.get(epic_id)
+        epic = taiga_client_wrapper.get_resource("epic", epic_id)
         # return epic.to_dict() # Remove .to_dict()
         return epic  # Return directly
     except TaigaException as e:
@@ -1860,10 +1860,10 @@ def update_epic(session_id: str, epic_id: int, **kwargs) -> Dict[str, Any]:
         # Use pytaigaclient edit pattern for partial updates
         if not kwargs:
             logger.info(f"No fields provided for update on epic {epic_id}")
-            return taiga_client_wrapper.api.epics.get(epic_id)
+            return taiga_client_wrapper.get_resource("epic", epic_id)
 
         # Get current epic data to retrieve version
-        current_epic = taiga_client_wrapper.api.epics.get(epic_id)
+        current_epic = taiga_client_wrapper.get_resource("epic", epic_id)
         version = current_epic.get("version")
         if not version:
             raise ValueError(f"Could not determine version for epic {epic_id}")
@@ -1996,7 +1996,7 @@ def get_milestone(session_id: str, milestone_id: int) -> Dict[str, Any]:
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
         # Milestones expects milestone_id as a positional argument
-        milestone = taiga_client_wrapper.api.milestones.get(milestone_id)
+        milestone = taiga_client_wrapper.get_resource("milestone", milestone_id)
         # return milestone.to_dict() # Remove .to_dict()
         return milestone  # Return directly
     except TaigaException as e:
@@ -2018,10 +2018,10 @@ def update_milestone(session_id: str, milestone_id: int, **kwargs) -> Dict[str, 
         # Use pytaigaclient edit pattern for partial updates
         if not kwargs:
             logger.info(f"No fields provided for update on milestone {milestone_id}")
-            return taiga_client_wrapper.api.milestones.get(milestone_id)
+            return taiga_client_wrapper.get_resource("milestone", milestone_id)
 
         # Get current milestone data to retrieve version
-        current_milestone = taiga_client_wrapper.api.milestones.get(milestone_id)
+        current_milestone = taiga_client_wrapper.get_resource("milestone", milestone_id)
         version = current_milestone.get("version")
         if not version:
             raise ValueError(f"Could not determine version for milestone {milestone_id}")
@@ -2161,7 +2161,7 @@ def get_wiki_page(session_id: str, wiki_page_id: int) -> WikiPageResponse:
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
         # Wiki expects wiki_page_id as a positional argument
-        page = taiga_client_wrapper.api.wiki.get(wiki_page_id)
+        page = taiga_client_wrapper.get_resource("wiki_page", wiki_page_id)
         # return page.to_dict() # Remove .to_dict()
         return page  # Return directly
     except TaigaException as e:

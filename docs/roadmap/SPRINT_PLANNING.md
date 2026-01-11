@@ -59,23 +59,25 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 ## 🎯 Sprint 2: Session Hardening + Quick Wins (Weeks 3-4) 🔄 IN PROGRESS
 **Story Points Target**: 24 points
-**Story Points Completed**: 13/24 (54%)
+**Story Points Completed**: 18/24 (75%)
 **Priority**: 🔴 CRITICAL
-**Status**: ✅ IN PROGRESS (Sprint 1 ✅ Complete)
+**Status**: 🔄 IN PROGRESS (Sprint 1 ✅ Complete)
 
 ### User Stories
 
 | ID | Title | Points | Assigned | Status | PR |
 |----|-------|--------|----------|--------|-----|
 | US-1.2 | Session Management Hardening | 13 | Claude | ✅ Merged | #6 |
-| US-1.3 | Rate Limiting on Login | 5 | TBD | Pending | - |
+| US-1.3 | Rate Limiting on Login | 5 | Claude | ✅ Merged | #7 |
 | US-2.1 | API Parameter Standardization | 8 | TBD | Pending | - |
 
 **Sprint Goal**: Harden session management and establish API consistency
 
 **Blocking Dependencies**: ✅ Sprint 1 Complete - Ready to begin
 
-**Deliverables (US-1.2 Complete)**:
+**Deliverables**:
+
+**US-1.2 (Complete)**:
 - SessionInfo dataclass with TTL enforcement and metadata tracking
 - Session validation with automatic TTL checks and cleanup
 - Per-user concurrent session limit enforcement (default: 5 sessions)
@@ -84,6 +86,18 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 - Configuration variables: SESSION_EXPIRY, MAX_CONCURRENT_SESSIONS, SESSION_CLEANUP_INTERVAL
 - Comprehensive test suite: 25 tests covering all session management features
 - All tests passing: 129/130 (1 pre-existing failure unrelated to this work)
+
+**US-1.3 (Complete)**:
+- LoginAttempt and RateLimitInfo dataclasses for rate limit tracking
+- Sliding window algorithm for failed attempt tracking
+- Per-user rate limiting with configurable thresholds (default: 5 attempts per 60s)
+- Lockout enforcement (default: 15 minutes) with countdown in error messages
+- Rate limit checks integrated into login() tool
+- Background cleanup task for rate limit data memory management
+- Thread-safe implementation with proper locking
+- Comprehensive test suite: 28 tests covering all rate limiting features
+- All tests passing: 157/158 (1 pre-existing failure in test_update_project)
+- Configuration variables: LOGIN_MAX_ATTEMPTS, LOGIN_RATE_WINDOW, LOGIN_LOCKOUT_DURATION, RATE_LIMIT_CLEANUP_INTERVAL
 
 ---
 

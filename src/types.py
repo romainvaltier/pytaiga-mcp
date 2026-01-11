@@ -5,7 +5,13 @@ Provides TypedDict classes for all MCP tool return types to enable
 strict type checking and improved IDE support.
 """
 
-from typing import List, Optional, TypedDict
+import os
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, List, Optional, TypedDict
+
+if TYPE_CHECKING:
+    from src.taiga_client import TaigaClientWrapper
 
 try:
     from typing import NotRequired
@@ -37,6 +43,10 @@ class SessionStatusResponse(TypedDict):
     session_id: str
     username: NotRequired[str]
     reason: NotRequired[str]
+    created_at: NotRequired[str]
+    last_accessed: NotRequired[str]
+    expires_at: NotRequired[str]
+    time_until_expiry_seconds: NotRequired[int]
 
 
 # --- Status/Metadata Response Types ---
@@ -265,3 +275,56 @@ StatusList = List[StatusResponse]
 PriorityList = List[PriorityResponse]
 SeverityList = List[SeverityResponse]
 IssueTypeList = List[IssueTypeResponse]
+
+
+# --- Session Management Types ---
+
+
+@dataclass
+class SessionInfo:
+    """
+    Session metadata and client wrapper for authenticated sessions.
+
+    Tracks session lifecycle with TTL enforcement and last access timestamps.
+    Used to store session information with automatic expiration based on
+    SESSION_EXPIRY environment variable (default: 8 hours).
+
+    Attributes:
+        session_id: UUID string identifying the session
+        client: Authenticated TaigaClientWrapper instance
+        username: Username of authenticated user
+        created_at: Timestamp when session was created
+        last_accessed: Timestamp of most recent session access
+        expires_at: Timestamp when session expires
+    """
+
+    session_id: str
+    client: "TaigaClientWrapper"  # Avoid circular import
+    username: str
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    last_accessed: datetime = field(default_factory=datetime.utcnow)
+    expires_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Set expiration time based on SESSION_EXPIRY config."""
+        if self.expires_at is None:
+            ttl_seconds = int(os.getenv("SESSION_EXPIRY", "28800"))
+            if ttl_seconds <= 0:
+                ttl_seconds = 28800  # Fallback to 8 hours
+            self.expires_at = self.created_at + timedelta(seconds=ttl_seconds)
+
+    def is_expired(self) -> bool:
+        """Check if session has expired based on TTL."""
+        if self.expires_at is None:
+            return False
+        return datetime.utcnow() >= self.expires_at
+
+    def update_last_accessed(self) -> None:
+        """Update last accessed timestamp to current time."""
+        self.last_accessed = datetime.utcnow()
+
+    def time_until_expiry(self) -> timedelta:
+        """Calculate time remaining until expiration."""
+        if self.expires_at is None:
+            return timedelta(seconds=0)
+        return self.expires_at - datetime.utcnow()

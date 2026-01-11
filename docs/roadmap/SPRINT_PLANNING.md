@@ -57,22 +57,33 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 ---
 
-## 🎯 Sprint 2: Session Hardening + Quick Wins (Weeks 3-4) 🔄 READY
+## 🎯 Sprint 2: Session Hardening + Quick Wins (Weeks 3-4) 🔄 IN PROGRESS
 **Story Points Target**: 24 points
+**Story Points Completed**: 13/24 (54%)
 **Priority**: 🔴 CRITICAL
-**Status**: Ready to Start (Sprint 1 ✅ Complete)
+**Status**: ✅ IN PROGRESS (Sprint 1 ✅ Complete)
 
 ### User Stories
 
-| ID | Title | Points | Assigned | Status |
-|----|-------|--------|----------|--------|
-| US-1.2 | Session Management Hardening | 13 | TBD | Pending |
-| US-1.3 | Rate Limiting on Login | 5 | TBD | Pending |
-| US-2.1 | API Parameter Standardization | 8 | TBD | Pending |
+| ID | Title | Points | Assigned | Status | PR |
+|----|-------|--------|----------|--------|-----|
+| US-1.2 | Session Management Hardening | 13 | Claude | ✅ Merged | #6 |
+| US-1.3 | Rate Limiting on Login | 5 | TBD | Pending | - |
+| US-2.1 | API Parameter Standardization | 8 | TBD | Pending | - |
 
 **Sprint Goal**: Harden session management and establish API consistency
 
 **Blocking Dependencies**: ✅ Sprint 1 Complete - Ready to begin
+
+**Deliverables (US-1.2 Complete)**:
+- SessionInfo dataclass with TTL enforcement and metadata tracking
+- Session validation with automatic TTL checks and cleanup
+- Per-user concurrent session limit enforcement (default: 5 sessions)
+- Background cleanup task (runs every 5 minutes)
+- Enhanced session_status tool with expiration metadata
+- Configuration variables: SESSION_EXPIRY, MAX_CONCURRENT_SESSIONS, SESSION_CLEANUP_INTERVAL
+- Comprehensive test suite: 25 tests covering all session management features
+- All tests passing: 129/130 (1 pre-existing failure unrelated to this work)
 
 ---
 

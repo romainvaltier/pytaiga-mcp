@@ -680,7 +680,6 @@ def list_projects(session_id: str) -> ProjectList:
         # Use pytaigaclient syntax: client.resource.method()
         projects = taiga_client_wrapper.api.projects.list()
         # Remove .to_dict() as pytaigaclient should return dicts
-        # result = [p.to_dict() for p in projects]
         logger.info(
             f"list_projects successful for session {session_id[:8]}, found {len(projects)} projects."
         )
@@ -757,7 +756,6 @@ def get_project(session_id: str, project_id: int) -> ProjectResponse:
     try:
         # Use unified resource accessor (US-2.2)
         project = taiga_client_wrapper.get_resource("project", project_id)
-        # return project.to_dict() # Remove .to_dict()
         return project  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting project {project_id}: {e}", exc_info=False)
@@ -797,7 +795,6 @@ def get_project_by_slug(session_id: str, slug: str) -> ProjectResponse:
     try:
         # Use pytaigaclient syntax: client.resource.get(slug=...)
         project = taiga_client_wrapper.api.projects.get(slug=slug)
-        # return project.to_dict() # Remove .to_dict()
         return project  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting project by slug '{slug}': {e}", exc_info=False)
@@ -989,12 +986,6 @@ def delete_project(session_id: str, project_id: int) -> DeleteResponse:
         raise RuntimeError(f"Server error deleting project: {e}")
 
 
-# @mcp.tool("get_project_roles", description="Lists the available roles within a specific project.")
-# def get_project_roles(session_id: str, project_id: int) -> List[Dict[str, Any]]:
-#     """Retrieves the list of roles for a project. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_project_roles called, but not supported by pytaigaclient. Project: {project_id}")
-#     raise NotImplementedError("Listing project-specific roles is not currently supported by the pytaigaclient wrapper.")
-
 # --- User Story Tools ---
 
 
@@ -1043,7 +1034,6 @@ def list_user_stories(session_id: str, project_id: int, **filters) -> UserStoryL
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
         stories = taiga_client_wrapper.api.user_stories.list(project_id=project_id, **filters)
-        # return [s.to_dict() for s in stories] # Remove .to_dict()
         return stories  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1122,7 +1112,6 @@ def create_user_story(
         logger.info(
             f"User story '{subject}' created successfully (ID: {story.get('id', 'N/A')})."
         )  # Use .get() for safety
-        # return story.to_dict() # Remove .to_dict()
         return story  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error creating user story '{subject}': {e}", exc_info=False)
@@ -1168,7 +1157,6 @@ def get_user_story(session_id: str, user_story_id: int) -> UserStoryResponse:
     try:
         # Use unified resource accessor (US-2.2)
         story = taiga_client_wrapper.get_resource("user_story", user_story_id)
-        # return story.to_dict() # Remove .to_dict()
         return story  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting user story {user_story_id}: {e}", exc_info=False)
@@ -1176,13 +1164,6 @@ def get_user_story(session_id: str, user_story_id: int) -> UserStoryResponse:
     except Exception as e:
         logger.error(f"Unexpected error getting user story {user_story_id}: {e}", exc_info=True)
         raise RuntimeError(f"Server error getting user story: {e}")
-
-
-# @mcp.tool("get_user_story_by_ref", description="Gets detailed information about a specific user story by its reference number within a project.")
-# def get_user_story_by_ref(session_id: str, project_id: int, ref: int) -> Dict[str, Any]:
-#     """Retrieves user story details by project ID and reference number. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_user_story_by_ref called, but not supported by pytaigaclient. Project: {project_id}, Ref: {ref}")
-#     raise NotImplementedError("Getting user stories by reference number is not currently supported by the pytaigaclient wrapper.")
 
 
 @mcp.tool("update_user_story", description="Updates details of an existing user story.")
@@ -1275,7 +1256,6 @@ def get_user_story_statuses(session_id: str, project_id: int) -> List[Dict[str, 
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         # Update resource name: user_story_statuses -> userstory_statuses
         statuses = taiga_client_wrapper.api.userstory_statuses.list(project_id=project_id)
-        # return [s.to_dict() for s in statuses] # Remove .to_dict()
         return statuses  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1323,7 +1303,6 @@ def list_tasks(session_id: str, project_id: int, **filters) -> TaskList:
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
         tasks = taiga_client_wrapper.api.tasks.list(project_id=project_id, **filters)
-        # return [t.to_dict() for t in tasks] # Remove .to_dict()
         return tasks  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error listing tasks for project {project_id}: {e}", exc_info=False)
@@ -1355,7 +1334,6 @@ def create_task(session_id: str, project_id: int, subject: str, **kwargs) -> Dic
         # Use pytaigaclient syntax: client.resource.create(project=..., subject=..., **kwargs)
         task = taiga_client_wrapper.api.tasks.create(project=project_id, subject=subject, **kwargs)
         logger.info(f"Task '{subject}' created successfully (ID: {task.get('id', 'N/A')}).")
-        # return task.to_dict() # Remove .to_dict()
         return task  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error creating task '{subject}': {e}", exc_info=False)
@@ -1373,7 +1351,6 @@ def get_task(session_id: str, task_id: int) -> Dict[str, Any]:
     try:
         # Tasks expects task_id as a positional argument
         task = taiga_client_wrapper.get_resource("task", task_id)
-        # return task.to_dict() # Remove .to_dict()
         return task  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting task {task_id}: {e}", exc_info=False)
@@ -1381,13 +1358,6 @@ def get_task(session_id: str, task_id: int) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Unexpected error getting task {task_id}: {e}", exc_info=True)
         raise RuntimeError(f"Server error getting task: {e}")
-
-
-# @mcp.tool("get_task_by_ref", description="Gets detailed information about a specific task by its reference number within a project.")
-# def get_task_by_ref(session_id: str, project_id: int, ref: int) -> Dict[str, Any]:
-#     """Retrieves task details by project ID and reference number. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_task_by_ref called, but not supported by pytaigaclient. Project: {project_id}, Ref: {ref}")
-#     raise NotImplementedError("Getting tasks by reference number is not currently supported by the pytaigaclient wrapper.")
 
 
 @mcp.tool("update_task", description="Updates details of an existing task.")
@@ -1477,12 +1447,6 @@ def unassign_task_from_user(session_id: str, task_id: int) -> Dict[str, Any]:
     return _unassign_resource_from_user(session_id, "task", task_id)
 
 
-# @mcp.tool("get_task_statuses", description="Lists the available statuses for tasks within a specific project.")
-# def get_task_statuses(session_id: str, project_id: int) -> List[Dict[str, Any]]:
-#     """Retrieves the list of task statuses for a project. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_task_statuses called, but not supported by pytaigaclient. Project: {project_id}")
-#     raise NotImplementedError("Listing task statuses is not currently supported by the pytaigaclient wrapper.")
-
 # --- Issue Tools ---
 
 
@@ -1496,7 +1460,6 @@ def list_issues(session_id: str, project_id: int, **filters) -> IssueList:
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
         issues = taiga_client_wrapper.api.issues.list(project_id=project_id, **filters)
-        # return [i.to_dict() for i in issues] # Remove .to_dict()
         return issues  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1541,7 +1504,6 @@ def create_issue(
             **kwargs,
         )
         logger.info(f"Issue '{subject}' created successfully (ID: {issue.get('id', 'N/A')}).")
-        # return issue.to_dict() # Remove .to_dict()
         return issue  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error creating issue '{subject}': {e}", exc_info=False)
@@ -1559,7 +1521,6 @@ def get_issue(session_id: str, issue_id: int) -> Dict[str, Any]:
     try:
         # Issues expects issue_id as a positional argument
         issue = taiga_client_wrapper.get_resource("issue", issue_id)
-        # return issue.to_dict() # Remove .to_dict()
         return issue  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting issue {issue_id}: {e}", exc_info=False)
@@ -1567,13 +1528,6 @@ def get_issue(session_id: str, issue_id: int) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Unexpected error getting issue {issue_id}: {e}", exc_info=True)
         raise RuntimeError(f"Server error getting issue: {e}")
-
-
-# @mcp.tool("get_issue_by_ref", description="Gets detailed information about a specific issue by its reference number within a project.")
-# def get_issue_by_ref(session_id: str, project_id: int, ref: int) -> Dict[str, Any]:
-#     """Retrieves issue details by project ID and reference number. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_issue_by_ref called, but not supported by pytaigaclient. Project: {project_id}, Ref: {ref}")
-#     raise NotImplementedError("Getting issues by reference number is not currently supported by the pytaigaclient wrapper.")
 
 
 @mcp.tool("update_issue", description="Updates details of an existing issue.")
@@ -1661,7 +1615,6 @@ def get_issue_statuses(session_id: str, project_id: int) -> List[Dict[str, Any]]
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         statuses = taiga_client_wrapper.api.issue_statuses.list(project_id=project_id)
-        # return [s.to_dict() for s in statuses] # Remove .to_dict()
         return statuses  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1689,7 +1642,6 @@ def get_issue_priorities(session_id: str, project_id: int) -> List[Dict[str, Any
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         # Update resource name: priorities -> issue_priorities
         priorities = taiga_client_wrapper.api.issue_priorities.list(project_id=project_id)
-        # return [p.to_dict() for p in priorities] # Remove .to_dict()
         return priorities  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1719,7 +1671,6 @@ def get_issue_severities(session_id: str, project_id: int) -> List[Dict[str, Any
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         # Update resource name: severities -> issue_severities
         severities = taiga_client_wrapper.api.issue_severities.list(project_id=project_id)
-        # return [s.to_dict() for s in severities] # Remove .to_dict()
         return severities  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1745,7 +1696,6 @@ def get_issue_types(session_id: str, project_id: int) -> List[Dict[str, Any]]:
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         types = taiga_client_wrapper.api.issue_types.list(project_id=project_id)
-        # return [t.to_dict() for t in types] # Remove .to_dict()
         return types  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1772,7 +1722,6 @@ def list_epics(session_id: str, project_id: int, **filters) -> EpicList:
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
         epics = taiga_client_wrapper.api.epics.list(project_id=project_id, **filters)
-        # return [e.to_dict() for e in epics] # Remove .to_dict()
         return epics  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error listing epics for project {project_id}: {e}", exc_info=False)
@@ -1804,7 +1753,6 @@ def create_epic(session_id: str, project_id: int, subject: str, **kwargs) -> Dic
         # Use pytaigaclient syntax: client.resource.create(project=..., subject=..., **kwargs)
         epic = taiga_client_wrapper.api.epics.create(project=project_id, subject=subject, **kwargs)
         logger.info(f"Epic '{subject}' created successfully (ID: {epic.get('id', 'N/A')}).")
-        # return epic.to_dict() # Remove .to_dict()
         return epic  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error creating epic '{subject}': {e}", exc_info=False)
@@ -1822,7 +1770,6 @@ def get_epic(session_id: str, epic_id: int) -> Dict[str, Any]:
     try:
         # Epics expects epic_id as a positional argument
         epic = taiga_client_wrapper.get_resource("epic", epic_id)
-        # return epic.to_dict() # Remove .to_dict()
         return epic  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting epic {epic_id}: {e}", exc_info=False)
@@ -1830,13 +1777,6 @@ def get_epic(session_id: str, epic_id: int) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Unexpected error getting epic {epic_id}: {e}", exc_info=True)
         raise RuntimeError(f"Server error getting epic: {e}")
-
-
-# @mcp.tool("get_epic_by_ref", description="Gets detailed information about a specific epic by its reference number within a project.")
-# def get_epic_by_ref(session_id: str, project_id: int, ref: int) -> Dict[str, Any]:
-#     """Retrieves epic details by project ID and reference number. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_epic_by_ref called, but not supported by pytaigaclient. Project: {project_id}, Ref: {ref}")
-#     raise NotImplementedError("Getting epics by reference number is not currently supported by the pytaigaclient wrapper.")
 
 
 @mcp.tool("update_epic", description="Updates details of an existing epic.")
@@ -1926,12 +1866,6 @@ def unassign_epic_from_user(session_id: str, epic_id: int) -> Dict[str, Any]:
     return _unassign_resource_from_user(session_id, "epic", epic_id)
 
 
-# @mcp.tool("get_epic_statuses", description="Lists the available statuses for epics within a specific project.")
-# def get_epic_statuses(session_id: str, project_id: int) -> List[Dict[str, Any]]:
-#     """Retrieves the list of epic statuses for a project. (REMOVED - Resource not found in pytaigaclient)"""
-#     logger.warning(f"get_epic_statuses called, but epic_statuses resource not found in pytaigaclient. Project: {project_id}")
-#     raise NotImplementedError("Listing epic statuses is not currently supported by the pytaigaclient wrapper.")
-
 # --- Milestone (Sprint) Tools ---
 
 
@@ -1943,7 +1877,6 @@ def list_milestones(session_id: str, project_id: int) -> MilestoneList:
     try:
         # Use pytaigaclient syntax: client.resource.list(project_id=...)
         milestones = taiga_client_wrapper.api.milestones.list(project_id=project_id)
-        # return [m.to_dict() for m in milestones] # Remove .to_dict()
         return milestones  # Return directly
     except TaigaException as e:
         logger.error(
@@ -1977,7 +1910,6 @@ def create_milestone(
             estimated_finish=estimated_finish,
         )
         logger.info(f"Milestone '{name}' created successfully (ID: {milestone.get('id', 'N/A')}).")
-        # return milestone.to_dict() # Remove .to_dict()
         return milestone  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error creating milestone '{name}': {e}", exc_info=False)
@@ -1997,7 +1929,6 @@ def get_milestone(session_id: str, milestone_id: int) -> Dict[str, Any]:
     try:
         # Milestones expects milestone_id as a positional argument
         milestone = taiga_client_wrapper.get_resource("milestone", milestone_id)
-        # return milestone.to_dict() # Remove .to_dict()
         return milestone  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting milestone {milestone_id}: {e}", exc_info=False)
@@ -2058,12 +1989,6 @@ def delete_milestone(session_id: str, milestone_id: int) -> Dict[str, Any]:
         raise RuntimeError(f"Server error deleting milestone: {e}")
 
 
-# @mcp.tool("get_milestone_stats", description="Gets statistics (total points, completed points, etc.) for a specific milestone.")
-# def get_milestone_stats(session_id: str, milestone_id: int) -> Dict[str, Any]:
-#     """Retrieves statistics for a milestone. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_milestone_stats called, but not supported by pytaigaclient. Milestone: {milestone_id}")
-#     raise NotImplementedError("Getting milestone statistics is not currently supported by the pytaigaclient wrapper.")
-
 # --- User Management Tools ---
 
 
@@ -2077,7 +2002,6 @@ def get_project_members(session_id: str, project_id: int) -> MemberList:
     try:
         # Use pytaigaclient memberships resource list method
         members = taiga_client_wrapper.api.memberships.list(project_id=project_id)
-        # return [m.to_dict() for m in members] # Remove .to_dict()
         return members  # Return directly
     except TaigaException as e:
         logger.error(
@@ -2140,7 +2064,6 @@ def list_wiki_pages(session_id: str, project_id: int) -> WikiPageList:
     try:
         # Use pytaigaclient syntax: client.wiki.list(project_id=...)
         pages = taiga_client_wrapper.api.wiki.list(project_id=project_id)
-        # return [p.to_dict() for p in pages] # Remove .to_dict()
         return pages  # Return directly
     except TaigaException as e:
         logger.error(
@@ -2162,7 +2085,6 @@ def get_wiki_page(session_id: str, wiki_page_id: int) -> WikiPageResponse:
     try:
         # Wiki expects wiki_page_id as a positional argument
         page = taiga_client_wrapper.get_resource("wiki_page", wiki_page_id)
-        # return page.to_dict() # Remove .to_dict()
         return page  # Return directly
     except TaigaException as e:
         logger.error(f"Taiga API error getting wiki page {wiki_page_id}: {e}", exc_info=False)
@@ -2171,12 +2093,6 @@ def get_wiki_page(session_id: str, wiki_page_id: int) -> WikiPageResponse:
         logger.error(f"Unexpected error getting wiki page {wiki_page_id}: {e}", exc_info=True)
         raise RuntimeError(f"Server error getting wiki page: {e}")
 
-
-# @mcp.tool("get_wiki_page_by_slug", description="Gets a specific wiki page by its slug within a project.")
-# def get_wiki_page_by_slug(session_id: str, project_id: int, slug: str) -> Dict[str, Any]:
-#     """Retrieves wiki page details by project ID and slug. (REMOVED - Not directly supported by pytaigaclient)"""
-#     logger.warning(f"get_wiki_page_by_slug called, but not supported by pytaigaclient. Project: {project_id}, Slug: {slug}")
-#     raise NotImplementedError("Getting wiki pages by slug is not currently supported by the pytaigaclient wrapper.")
 
 # --- Session Management Tools ---
 

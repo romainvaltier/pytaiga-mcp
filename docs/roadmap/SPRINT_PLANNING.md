@@ -122,7 +122,7 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 | ID | Title | Points | Assigned | Status | PR |
 |----|-------|--------|----------|--------|--------|
 | US-2.2 | Consistent Resource Access Patterns | 5 | Claude | ✅ Merged | #9 |
-| US-2.3 | Remove Commented-Out Code | 2 | TBD | Todo | - |
+| US-2.3 | Remove Commented-Out Code | 2 | Claude | ✅ Merged | #10 |
 | US-3.1 | Session Validation Test Suite | 8 | TBD | Todo | - |
 | US-3.2 | Error Handling Test Suite | 13 | TBD | Todo | - |
 
@@ -132,7 +132,7 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 **Deliverables**:
 
-**US-2.2 (In Progress - Just Completed)**:
+**US-2.2 (Complete)**:
 - RESOURCE_MAPPING constant mapping 7 resource types to pytaigaclient patterns (src/taiga_client.py)
 - get_resource() unified getter method handling named/positional parameter variations
 - Replaced 19 direct API get() calls in server.py with get_resource() wrapper
@@ -141,6 +141,19 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 - All tests passing: 18/19 (1 pre-existing failure in test_update_project unrelated to US-2.2)
 - Code formatted with black and isort
 - Benefits: Centralizes pytaigaclient quirks, simplifies testing, enables future extensibility
+
+**US-2.3 (Complete)**:
+- Removed 9 disabled tool definitions (45 lines from server.py)
+  * Tools that depend on unsupported pytaigaclient features
+  * All documented in ROADMAP.md as not supported
+- Removed 26 commented-out return statements (.to_dict() patterns)
+- Removed old pytaiga import comments from taiga_client.py
+- Removed commented token authentication method
+- Removed explanatory comments at end of file
+- Code reduction: server.py 2302 → 2218 lines (84 lines removed), taiga_client.py cleaned
+- All tests passing: 18/19 (same pre-existing failure)
+- Code formatted with black and isort
+- Benefits: Cleaner codebase, improved readability, easier maintenance
 
 ---
 

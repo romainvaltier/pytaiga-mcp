@@ -1,6 +1,6 @@
 # Sprint Planning & Backlog
 
-**Last Updated**: 2026-01-10
+**Last Updated**: 2026-01-11
 **Project**: Taiga MCP Bridge
 **Total Estimated Story Points**: 195 points
 **Sprints**: 2-week iterations (8 sprints planned)
@@ -57,11 +57,11 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 ---
 
-## 🎯 Sprint 2: Session Hardening + Quick Wins (Weeks 3-4) 🔄 IN PROGRESS
-**Story Points Target**: 24 points
-**Story Points Completed**: 18/24 (75%)
+## 🎯 Sprint 2: Session Hardening + Quick Wins (Weeks 3-4) ✅ COMPLETED
+**Story Points Target**: 26 points
+**Story Points Completed**: 26/26 (100%)
 **Priority**: 🔴 CRITICAL
-**Status**: 🔄 IN PROGRESS (Sprint 1 ✅ Complete)
+**Status**: ✅ COMPLETED (2026-01-11)
 
 ### User Stories
 
@@ -69,7 +69,7 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 |----|-------|--------|----------|--------|-----|
 | US-1.2 | Session Management Hardening | 13 | Claude | ✅ Merged | #6 |
 | US-1.3 | Rate Limiting on Login | 5 | Claude | ✅ Merged | #7 |
-| US-2.1 | API Parameter Standardization | 8 | TBD | Pending | - |
+| US-2.1 | API Parameter Standardization | 8 | Claude | ✅ Merged | #8 |
 
 **Sprint Goal**: Harden session management and establish API consistency
 
@@ -99,12 +99,23 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 - All tests passing: 157/158 (1 pre-existing failure in test_update_project)
 - Configuration variables: LOGIN_MAX_ATTEMPTS, LOGIN_RATE_WINDOW, LOGIN_LOCKOUT_DURATION, RATE_LIMIT_CLEANUP_INTERVAL
 
+**US-2.1 (Complete)**:
+- Standardized LIST operations to use `project_id=` parameter (user_stories, tasks)
+- Standardized GET operations to use named `project_id=` parameter (projects)
+- Added comprehensive module-level documentation explaining parameter conventions (src/server.py:95-122)
+- Documented API Parameter Standardization section in CLAUDE.md with rationale for each pattern
+- Parameter verification tests: 3 new tests validating correct parameter usage
+- All tests passing: 8/9 tests (1 pre-existing failure in test_update_project)
+- Updated test assertions to expect new parameter patterns
+- Library constraints properly documented (milestones.list uses `project=`, others use `project_id=`)
+- No breaking changes to MCP tool interfaces (internal standardization only)
+
 ---
 
 ## 🎯 Sprint 3: Code Quality & Consistency (Weeks 5-6)
 **Story Points Target**: 21 points
 **Priority**: 🟠 HIGH
-**Status**: Not Started
+**Status**: Ready to Start (Sprint 1-2 ✅ Complete)
 
 ### User Stories
 
@@ -117,7 +128,7 @@ Sprint 8 (Week 15+)  : Production Readiness (ongoing)
 
 **Sprint Goal**: Improve code consistency and begin comprehensive testing
 
-**Blocking Dependencies**: Sprint 1-2 completion
+**Blocking Dependencies**: ✅ Sprint 1-2 Complete - Ready to begin
 
 ---
 
@@ -310,26 +321,35 @@ Total: 195+ story points
 
 ## 📝 Backlog Items (Prioritized)
 
+### ✅ Completed
+1. US-1.1: Input Validation Framework (Sprint 1)
+2. US-1.2: Session Management Hardening (Sprint 2)
+3. US-1.3: Rate Limiting on Login (Sprint 2)
+4. US-2.4: Reduce Code Duplication (Sprint 1)
+5. US-2.5: Enhanced Type Hints (Sprint 1)
+6. US-1.4: HTTPS Enforcement (Sprint 1)
+7. US-1.5: Secure Logging (Sprint 1)
+8. US-2.1: API Parameter Standardization (Sprint 2)
+
 ### High Priority (Do Next)
-1. US-1.1: Input Validation Framework
-2. US-1.2: Session Management Hardening
+1. US-2.2: Consistent Resource Access Patterns
+2. US-2.3: Remove Commented-Out Code
 3. US-3.1: Session Validation Test Suite
 4. US-3.2: Error Handling Test Suite
-5. US-2.1: API Parameter Standardization
 
 ### Medium Priority (Do After)
-6. US-3.3: Input Validation Test Suite
-7. US-3.4: Delete Operation Test Suite
-8. US-3.5: Edge Case Testing
-9. US-3.6: Integration Test Expansion
-10. US-4.1: Comment Management
+5. US-3.3: Input Validation Test Suite
+6. US-3.4: Delete Operation Test Suite
+7. US-3.5: Edge Case Testing
+8. US-3.6: Integration Test Expansion
+9. US-4.1: Comment Management
 
 ### Lower Priority (Future)
-11. US-4.2: Attachment Management
-12. US-4.3: Epic-Story Relationships
-13. US-4.4: Custom Attributes
-14. US-4.5: Bulk Operations
-15. US-4.6: Search & Advanced Filtering
+10. US-4.2: Attachment Management
+11. US-4.3: Epic-Story Relationships
+12. US-4.4: Custom Attributes
+13. US-4.5: Bulk Operations
+14. US-4.6: Search & Advanced Filtering
 
 ---
 

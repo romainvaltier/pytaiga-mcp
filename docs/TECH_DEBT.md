@@ -12,6 +12,7 @@ This document tracks identified issues, code quality gaps, and recommended impro
 **Type**: Code Quality / Bug Fix
 **Status**: 📋 Backlog
 **Created**: 2026-01-11 (during US-3.4 planning)
+**GitHub Issue**: [#14](https://github.com/romainvaltier/pytaiga-mcp/issues/14)
 **Related Story**: US-2.6
 **Effort**: 3-5 story points
 

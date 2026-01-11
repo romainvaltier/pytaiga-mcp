@@ -432,6 +432,7 @@ Total: 195+ story points
 **Priority**: 🟠 MEDIUM
 **Status**: Backlog
 **Created**: During US-3.4 planning (2026-01-11)
+**GitHub Issue**: [#14](https://github.com/romainvaltier/pytaiga-mcp/issues/14)
 **Related**: US-3.4 findings
 
 **Problem**:

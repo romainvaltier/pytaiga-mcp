@@ -584,8 +584,10 @@ Total: **~9-10 hours** (matches 8 story points at ~1.25 hours per point with ove
 
 ## Recommended Follow-Up Work (Future User Stories)
 
-### US-2.6 (or US-3.7): Add Input Validation to Delete Operations
+### US-2.6: Add Input Validation to Delete Operations
 **Priority**: 🟠 MEDIUM | **Points**: 3-5 | **Type**: Code Quality
+**GitHub Issue**: [#14](https://github.com/romainvaltier/pytaiga-mcp/issues/14)
+**Status**: Backlog (formally created)
 
 During US-3.4 testing planning, identified that 3 delete operations lack input validation:
 

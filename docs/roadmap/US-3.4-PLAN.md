@@ -582,6 +582,36 @@ Total: **~9-10 hours** (matches 8 story points at ~1.25 hours per point with ove
 - Validation gaps in 3 operations may cause test complications (document behavior instead of enforcing)
 - Cascade behavior may vary by Taiga version (mock all scenarios)
 
+## Recommended Follow-Up Work (Future User Stories)
+
+### US-2.6 (or US-3.7): Add Input Validation to Delete Operations
+**Priority**: 🟠 MEDIUM | **Points**: 3-5 | **Type**: Code Quality
+
+During US-3.4 testing planning, identified that 3 delete operations lack input validation:
+
+**Findings:**
+- `delete_user_story` - No validation, fails at API layer
+- `delete_issue` - No validation, fails at API layer
+- `delete_milestone` - No validation, fails at API layer
+
+**Also Identified:**
+- Return type inconsistency: delete_project returns DeleteResponse, others return Dict[str, Any]
+
+**Recommended Actions:**
+1. Add `validate_user_story_id()` call to delete_user_story()
+2. Add `validate_issue_id()` call to delete_issue()
+3. Add `validate_milestone_id()` call to delete_milestone()
+4. Standardize all delete operations to return DeleteResponse type
+5. Update test_delete_operations.py to expect ValidationError instead of API errors
+
+**Testing**: US-3.4 test suite will document current behavior; this story will fix it.
+
+**Blocked By**: None (can start anytime)
+**Related**: US-3.4 findings
+**Effort**: 3-5 story points
+
+---
+
 ## Workflow
 
 1. Create feature branch: `feature/US-3.4-delete-operation-tests`
@@ -594,3 +624,4 @@ Total: **~9-10 hours** (matches 8 story points at ~1.25 hours per point with ove
 8. Update SPRINT_PLANNING.md to mark US-3.4 complete
 9. Commit and push documentation
 10. Cleanup feature branch
+11. **Create follow-up issue for US-2.6** (Input Validation Code Fixes)

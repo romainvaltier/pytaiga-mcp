@@ -5,6 +5,7 @@ import logging.config
 import os
 import threading
 import uuid
+from collections import deque
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
@@ -23,6 +24,7 @@ from src.types import (
     IssueList,
     IssueResponse,
     IssueTypeList,
+    LoginAttempt,
     LoginResponse,
     LogoutResponse,
     MemberList,
@@ -31,6 +33,7 @@ from src.types import (
     PriorityList,
     ProjectList,
     ProjectResponse,
+    RateLimitInfo,
     SessionInfo,
     SessionStatusResponse,
     SeverityList,
@@ -79,6 +82,12 @@ sessions_by_user: Dict[str, List[str]] = {}
 # Thread-safe lock for concurrent session operations (especially login)
 _session_lock = threading.Lock()
 
+# --- Rate Limiting with Sliding Window ---
+# Track login attempts per username to prevent brute force attacks
+rate_limit_data: Dict[str, RateLimitInfo] = {}
+# Thread-safe lock for rate limit operations
+_rate_limit_lock = threading.Lock()
+
 # --- MCP Server Definition ---
 # No lifespan needed for this approach
 mcp = FastMCP("Taiga Bridge (Session ID)", dependencies=["pytaigaclient"])
@@ -109,6 +118,100 @@ def _cleanup_session(session_id: str) -> None:
             f"Cleaned up session for user '{session_info.username}': "
             f"{truncate_session_id(session_id)}"
         )
+
+
+# --- Rate Limiting Helper Functions ---
+
+
+def _check_rate_limit(username: str) -> None:
+    """
+    Check if user is rate limited due to too many failed login attempts.
+
+    Uses sliding window algorithm to track attempts within configured time window.
+    Applies lockout if threshold exceeded. Automatically cleans old attempts.
+
+    Args:
+        username: Username attempting login
+
+    Raises:
+        PermissionError: If user is locked out with remaining time in message
+    """
+    max_attempts = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
+    window_seconds = int(os.getenv("LOGIN_RATE_WINDOW", "60"))
+    lockout_seconds = int(os.getenv("LOGIN_LOCKOUT_DURATION", "900"))
+
+    # Skip rate limiting if disabled (max_attempts = 0)
+    if max_attempts == 0:
+        return
+
+    with _rate_limit_lock:
+        if username not in rate_limit_data:
+            return  # No attempts yet, allow login
+
+        rate_info = rate_limit_data[username]
+
+        # Check if currently locked out
+        if rate_info.is_locked_out():
+            remaining = rate_info.remaining_lockout_time()
+            logger.warning(
+                f"Login attempt blocked - user '{username}' is locked out "
+                f"({remaining}s remaining)"
+            )
+            raise PermissionError(
+                f"Too many failed login attempts. Account locked. "
+                f"Try again in {remaining} seconds."
+            )
+
+        # Sliding window: Remove attempts outside the time window
+        cutoff_time = datetime.utcnow() - timedelta(seconds=window_seconds)
+        while rate_info.attempts and rate_info.attempts[0].timestamp < cutoff_time:
+            rate_info.attempts.popleft()
+
+        # Count failed attempts within window
+        failed_attempts = [a for a in rate_info.attempts if not a.success]
+
+        # Check if threshold would be exceeded with this attempt
+        if len(failed_attempts) >= max_attempts:
+            # Apply lockout
+            rate_info.locked_until = datetime.utcnow() + timedelta(seconds=lockout_seconds)
+            logger.warning(
+                f"Rate limit threshold exceeded for user '{username}' "
+                f"({len(failed_attempts)} failed attempts). "
+                f"Applying {lockout_seconds}s lockout."
+            )
+            raise PermissionError(
+                f"Too many failed login attempts ({max_attempts} in {window_seconds}s). "
+                f"Account locked for {lockout_seconds} seconds."
+            )
+
+
+def _track_login_attempt(username: str, success: bool) -> None:
+    """
+    Record a login attempt for rate limiting purposes.
+
+    Successful logins clear the lockout and failed attempt history.
+    Failed attempts are added to the sliding window.
+
+    Args:
+        username: Username that attempted login
+        success: Whether the login was successful
+    """
+    with _rate_limit_lock:
+        if username not in rate_limit_data:
+            rate_limit_data[username] = RateLimitInfo()
+
+        rate_info = rate_limit_data[username]
+
+        # Create attempt record
+        attempt = LoginAttempt(timestamp=datetime.utcnow(), username=username, success=success)
+        rate_info.attempts.append(attempt)
+
+        # Clear lockout and failed attempts on successful login
+        if success:
+            rate_info.locked_until = None
+            # Keep successful attempt but clear failed ones
+            rate_info.attempts = deque([a for a in rate_info.attempts if a.success])
+            logger.debug(f"Successful login cleared rate limit for user '{username}'")
 
 
 # --- Helper Function for Session Validation ---
@@ -323,6 +426,82 @@ def _start_background_cleanup():
 _start_background_cleanup()
 
 
+# --- Rate Limit Cleanup ---
+
+
+def _cleanup_rate_limit_data_sync() -> int:
+    """
+    Clean up old rate limit data to prevent memory leaks.
+
+    Removes entries where:
+    - No active lockout
+    - All attempts are older than 2x the rate window
+
+    Returns:
+        Number of entries cleaned up
+    """
+    window_seconds = int(os.getenv("LOGIN_RATE_WINDOW", "60"))
+    cleanup_age = window_seconds * 2  # Keep data for 2x window
+    cutoff_time = datetime.utcnow() - timedelta(seconds=cleanup_age)
+
+    cleaned = 0
+    with _rate_limit_lock:
+        users_to_remove = []
+
+        for username, rate_info in rate_limit_data.items():
+            # Skip if locked out (keep lockout data)
+            if rate_info.is_locked_out():
+                continue
+
+            # Remove if no attempts or all attempts are old
+            if not rate_info.attempts or all(a.timestamp < cutoff_time for a in rate_info.attempts):
+                users_to_remove.append(username)
+
+        for username in users_to_remove:
+            del rate_limit_data[username]
+            cleaned += 1
+
+    if cleaned > 0:
+        logger.info(f"Rate limit cleanup removed {cleaned} user entries")
+
+    return cleaned
+
+
+async def _background_rate_limit_cleanup():
+    """
+    Background task to periodically clean up old rate limit data.
+
+    Runs every RATE_LIMIT_CLEANUP_INTERVAL seconds (default: 5 minutes).
+    Prevents memory accumulation from old login attempt records.
+    """
+    cleanup_interval = int(os.getenv("RATE_LIMIT_CLEANUP_INTERVAL", "300"))
+    logger.info(f"Starting rate limit cleanup (interval: {cleanup_interval}s)")
+
+    while True:
+        try:
+            await asyncio.sleep(cleanup_interval)
+            _cleanup_rate_limit_data_sync()
+        except Exception as e:
+            logger.error(f"Error in rate limit cleanup: {e}", exc_info=True)
+
+
+def _start_rate_limit_cleanup():
+    """Start rate limit cleanup task in separate daemon thread."""
+    loop = asyncio.new_event_loop()
+
+    def run_loop():
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(_background_rate_limit_cleanup())
+
+    cleanup_thread = threading.Thread(target=run_loop, daemon=True, name="RateLimitCleanup")
+    cleanup_thread.start()
+    logger.info("Rate limit cleanup thread started")
+
+
+# Initialize rate limit cleanup on module load
+_start_rate_limit_cleanup()
+
+
 # --- MCP Tools ---
 
 
@@ -351,6 +530,7 @@ def login(host: str, username: str, password: str) -> LoginResponse:
 
     Raises:
         ValueError: If the host URL doesn't use HTTPS (required for security).
+        PermissionError: If user is rate limited (max login attempts exceeded).
         TaigaException: If authentication fails (invalid credentials).
         RuntimeError: If an unexpected server error occurs.
 
@@ -360,6 +540,13 @@ def login(host: str, username: str, password: str) -> LoginResponse:
         >>> # Use session_id in subsequent tool calls
     """
     logger.info(f"Executing login tool for user '{username}' on host '{host}'")
+
+    # Check rate limiting before attempting authentication
+    try:
+        _check_rate_limit(username)
+    except PermissionError as e:
+        logger.warning(f"Login rate limit exceeded for user '{username}': {e}")
+        raise e
 
     try:
         wrapper = TaigaClientWrapper(host=host)
@@ -403,18 +590,26 @@ def login(host: str, username: str, password: str) -> LoginResponse:
                 f"expires: {session_info.expires_at.isoformat()}"
             )
 
+            # Track successful login for rate limiting
+            _track_login_attempt(username, success=True)
+
             return {"session_id": new_session_id}
         else:
             # Should not happen if login raises exception on failure, but handle defensively
             logger.error(f"Login attempt for '{username}' returned False unexpectedly.")
+            _track_login_attempt(username, success=False)
             raise RuntimeError("Login failed for an unknown reason.")
 
     except (ValueError, TaigaException) as e:
         logger.error(f"Login failed for '{username}': {e}", exc_info=False)
+        # Track failed login for rate limiting
+        _track_login_attempt(username, success=False)
         # Re-raise the exception - FastMCP will turn it into an error response
         raise e
     except Exception as e:
         logger.error(f"Unexpected error during login for '{username}': {e}", exc_info=True)
+        # Track failed login for rate limiting
+        _track_login_attempt(username, success=False)
         raise RuntimeError(f"An unexpected server error occurred during login: {e}")
 
 

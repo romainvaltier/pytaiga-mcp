@@ -6,6 +6,7 @@ strict type checking and improved IDE support.
 """
 
 import os
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, List, Optional, TypedDict
@@ -328,3 +329,51 @@ class SessionInfo:
         if self.expires_at is None:
             return timedelta(seconds=0)
         return self.expires_at - datetime.utcnow()
+
+
+# --- Rate Limiting Types ---
+
+
+@dataclass
+class LoginAttempt:
+    """
+    Track individual login attempt for rate limiting.
+
+    Attributes:
+        timestamp: When the attempt occurred
+        username: Username that attempted login
+        success: Whether login was successful
+    """
+
+    timestamp: datetime
+    username: str
+    success: bool
+
+
+@dataclass
+class RateLimitInfo:
+    """
+    Rate limit tracking per user with sliding window.
+
+    Tracks recent login attempts in a deque (sliding window) and enforces
+    lockout periods after threshold exceeded.
+
+    Attributes:
+        attempts: Queue of recent LoginAttempt objects (sliding window)
+        locked_until: Timestamp when lockout expires (None if not locked)
+    """
+
+    attempts: deque = field(default_factory=deque)
+    locked_until: Optional[datetime] = None
+
+    def is_locked_out(self) -> bool:
+        """Check if user is currently locked out."""
+        if self.locked_until is None:
+            return False
+        return datetime.utcnow() < self.locked_until
+
+    def remaining_lockout_time(self) -> int:
+        """Return seconds remaining in lockout period."""
+        if not self.is_locked_out():
+            return 0
+        return int((self.locked_until - datetime.utcnow()).total_seconds())

@@ -1,11 +1,17 @@
 # server_fastmcp.py
+import asyncio
 import logging
 import logging.config
+import os
+import threading
 import uuid
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 from mcp.server.fastmcp import FastMCP
 from pytaigaclient.exceptions import TaigaException
+
+from src.logging_utils import truncate_session_id
 
 # Assuming taiga_client.py is in the same directory or accessible via PYTHONPATH
 from src.taiga_client import TaigaClientWrapper
@@ -25,6 +31,7 @@ from src.types import (
     PriorityList,
     ProjectList,
     ProjectResponse,
+    SessionInfo,
     SessionStatusResponse,
     SeverityList,
     StatusList,
@@ -64,13 +71,45 @@ logger = logging.getLogger(__name__)
 # Quiet down pytaigaclient library logging if needed
 logging.getLogger("pytaigaclient").setLevel(logging.WARNING)
 
-# --- Manual Session Management ---
-# Store active sessions: session_id -> TaigaClientWrapper instance
-active_sessions: Dict[str, TaigaClientWrapper] = {}
+# --- Session Management with TTL and Metadata ---
+# Store active sessions: session_id -> SessionInfo instance
+active_sessions: Dict[str, SessionInfo] = {}
+# Track sessions by user for concurrent limit enforcement: username -> [session_id, ...]
+sessions_by_user: Dict[str, List[str]] = {}
+# Thread-safe lock for concurrent session operations (especially login)
+_session_lock = threading.Lock()
 
 # --- MCP Server Definition ---
 # No lifespan needed for this approach
 mcp = FastMCP("Taiga Bridge (Session ID)", dependencies=["pytaigaclient"])
+
+# --- Session Cleanup Helper ---
+
+
+def _cleanup_session(session_id: str) -> None:
+    """
+    Remove session from storage and user tracking.
+
+    Ensures both active_sessions and sessions_by_user are updated,
+    preventing memory leaks and maintaining consistent state.
+
+    Args:
+        session_id: The session ID to clean up
+    """
+    session_info = active_sessions.pop(session_id, None)
+    if session_info:
+        # Remove from user tracking
+        user_sessions = sessions_by_user.get(session_info.username, [])
+        if session_id in user_sessions:
+            user_sessions.remove(session_id)
+        # Clean up empty user lists
+        if not user_sessions:
+            sessions_by_user.pop(session_info.username, None)
+        logger.debug(
+            f"Cleaned up session for user '{session_info.username}': "
+            f"{truncate_session_id(session_id)}"
+        )
+
 
 # --- Helper Function for Session Validation ---
 
@@ -78,16 +117,63 @@ mcp = FastMCP("Taiga Bridge (Session ID)", dependencies=["pytaigaclient"])
 def _get_authenticated_client(session_id: str) -> TaigaClientWrapper:
     """
     Retrieves the authenticated TaigaClientWrapper for a given session ID.
-    Raises PermissionError if the session is invalid or not found.
+
+    Performs three validation checks:
+    1. Session exists
+    2. Session has not expired (TTL check)
+    3. Client is still authenticated
+
+    Automatically cleans up expired/invalid sessions and updates last_accessed.
+
+    Args:
+        session_id: The session ID to validate
+
+    Returns:
+        TaigaClientWrapper: The authenticated client wrapper
+
+    Raises:
+        PermissionError: If session is invalid, expired, or not authenticated
     """
-    client = active_sessions.get(session_id)
-    # Also check if the client object itself exists and is authenticated
-    if not client or not client.is_authenticated:
-        logger.warning(f"Invalid or expired session ID provided: {session_id}")
-        # Raise PermissionError - FastMCP will map this to an appropriate error response
-        raise PermissionError(f"Invalid or expired session ID: '{session_id}'. Please login again.")
-    logger.debug(f"Retrieved valid client for session ID: {session_id}")
-    return client
+    session_info = active_sessions.get(session_id)
+
+    # Check 1: Session exists
+    if not session_info:
+        logger.warning(f"Session not found: {truncate_session_id(session_id)}")
+        raise PermissionError(
+            f"Invalid session ID: '{truncate_session_id(session_id)}'. Please login again."
+        )
+
+    # Check 2: Session not expired
+    if session_info.is_expired():
+        logger.warning(
+            f"Session expired for user '{session_info.username}': "
+            f"{truncate_session_id(session_id)}"
+        )
+        _cleanup_session(session_id)
+        raise PermissionError(
+            f"Session expired. Please login again. "
+            f"(Session ID: {truncate_session_id(session_id)})"
+        )
+
+    # Check 3: Client authenticated
+    if not session_info.client.is_authenticated:
+        logger.warning(f"Client authentication lost: {truncate_session_id(session_id)}")
+        _cleanup_session(session_id)
+        raise PermissionError(
+            f"Session authentication lost: '{truncate_session_id(session_id)}'. "
+            "Please login again."
+        )
+
+    # Update last accessed timestamp
+    session_info.update_last_accessed()
+
+    logger.debug(
+        f"Valid session: {truncate_session_id(session_id)}, "
+        f"user: {session_info.username}, "
+        f"expires in: {session_info.time_until_expiry()}"
+    )
+
+    return session_info.client
 
 
 def _assign_resource_to_user(
@@ -166,6 +252,77 @@ def _unassign_resource_from_user(
     return update_func(session_id, resource_id, assigned_to=None)
 
 
+# --- Background Session Cleanup ---
+
+
+def _cleanup_expired_sessions_sync() -> int:
+    """
+    Synchronous cleanup of all expired sessions.
+
+    Scans active_sessions for any sessions that have exceeded their TTL
+    and removes them. Handles concurrent modification by creating a snapshot.
+
+    Returns:
+        int: Number of sessions cleaned up
+    """
+    expired_sessions = []
+
+    # Create snapshot to avoid "dictionary changed size during iteration"
+    for session_id, session_info in list(active_sessions.items()):
+        if session_info.is_expired():
+            expired_sessions.append(session_id)
+
+    # Remove expired sessions
+    for session_id in expired_sessions:
+        _cleanup_session(session_id)
+
+    if expired_sessions:
+        logger.info(f"Background cleanup removed {len(expired_sessions)} expired sessions")
+
+    return len(expired_sessions)
+
+
+async def _background_session_cleanup():
+    """
+    Background task to periodically clean up expired sessions.
+
+    Runs every SESSION_CLEANUP_INTERVAL seconds (default: 5 minutes).
+    This prevents memory leaks and ensures expired sessions don't accumulate
+    over time. Runs in a separate daemon thread to avoid blocking the main server.
+    """
+    cleanup_interval = int(os.getenv("SESSION_CLEANUP_INTERVAL", "300"))
+    logger.info(f"Starting background session cleanup (interval: {cleanup_interval}s)")
+
+    while True:
+        try:
+            await asyncio.sleep(cleanup_interval)
+            _cleanup_expired_sessions_sync()
+        except Exception as e:
+            logger.error(f"Error in background cleanup: {e}", exc_info=True)
+
+
+def _start_background_cleanup():
+    """
+    Start background cleanup task in separate daemon thread.
+
+    Creates a new event loop in a daemon thread and runs the background
+    cleanup task. The daemon thread will not prevent server shutdown.
+    """
+    loop = asyncio.new_event_loop()
+
+    def run_loop():
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(_background_session_cleanup())
+
+    cleanup_thread = threading.Thread(target=run_loop, daemon=True, name="SessionCleanup")
+    cleanup_thread.start()
+    logger.info("Background session cleanup thread started")
+
+
+# Initialize cleanup on module load
+_start_background_cleanup()
+
+
 # --- MCP Tools ---
 
 
@@ -209,12 +366,43 @@ def login(host: str, username: str, password: str) -> LoginResponse:
         login_successful = wrapper.login(username=username, password=password)
 
         if login_successful:
-            # Generate a unique session ID
-            new_session_id = str(uuid.uuid4())
-            # Store the authenticated wrapper in our manual session store
-            active_sessions[new_session_id] = wrapper
-            logger.info(f"Login successful for '{username}'. Created session ID: {new_session_id}")
-            # Return the session ID to the client
+            # Thread-safe concurrent session limit enforcement
+            max_sessions = int(os.getenv("MAX_CONCURRENT_SESSIONS", "5"))
+
+            with _session_lock:
+                user_sessions = sessions_by_user.get(username, [])
+
+                # Enforce concurrent session limit
+                if max_sessions > 0 and len(user_sessions) >= max_sessions:
+                    oldest_session_id = user_sessions[0]
+                    logger.warning(
+                        f"User '{username}' exceeded max concurrent sessions ({max_sessions}). "
+                        f"Removing oldest: {truncate_session_id(oldest_session_id)}"
+                    )
+                    _cleanup_session(oldest_session_id)
+
+                # Generate session ID
+                new_session_id = str(uuid.uuid4())
+
+                # Create session with metadata
+                session_info = SessionInfo(
+                    session_id=new_session_id, client=wrapper, username=username
+                )
+
+                # Store session
+                active_sessions[new_session_id] = session_info
+
+                # Track by user
+                if username not in sessions_by_user:
+                    sessions_by_user[username] = []
+                sessions_by_user[username].append(new_session_id)
+
+            logger.info(
+                f"Login successful for '{username}'. "
+                f"Session: {truncate_session_id(new_session_id)}, "
+                f"expires: {session_info.expires_at.isoformat()}"
+            )
+
             return {"session_id": new_session_id}
         else:
             # Should not happen if login raises exception on failure, but handle defensively
@@ -646,7 +834,9 @@ def list_user_stories(session_id: str, project_id: int, **filters) -> UserStoryL
 
 
 @mcp.tool("create_user_story", description="Creates a new user story within a project.")
-def create_user_story(session_id: str, project_id: int, subject: str, **kwargs) -> UserStoryResponse:
+def create_user_story(
+    session_id: str, project_id: int, subject: str, **kwargs
+) -> UserStoryResponse:
     """
     Create a new user story in a project.
 
@@ -1787,15 +1977,18 @@ def logout(session_id: str) -> LogoutResponse:
         >>> result = logout(session_id)
         >>> print(result["status"])  # "logged_out"
     """
-    logger.info(f"Executing logout for session {session_id[:8]}...")
-    # Remove from dict, return None if not found
-    client_wrapper = active_sessions.pop(session_id, None)  # Use consistent var name
-    if client_wrapper:
-        logger.info(f"Session {session_id[:8]} logged out successfully.")
-        # No specific API logout call needed usually for token-based auth
+    logger.info(f"Executing logout for session: {truncate_session_id(session_id)}")
+
+    session_info = active_sessions.get(session_id)
+    if session_info:
+        username = session_info.username
+        _cleanup_session(session_id)
+        logger.info(f"Logout successful: {truncate_session_id(session_id)}, user: {username}")
         return {"status": "logged_out", "session_id": session_id}
     else:
-        logger.warning(f"Attempted to log out non-existent session: {session_id}")
+        logger.warning(
+            f"Logout attempted for non-existent session: {truncate_session_id(session_id)}"
+        )
         return {"status": "session_not_found", "session_id": session_id}
 
 
@@ -1807,7 +2000,8 @@ def session_status(session_id: str) -> SessionStatusResponse:
     Check the current status of an authenticated session.
 
     Validates whether a session_id is still active and the underlying Taiga token is valid.
-    Automatically cleans up expired or invalid sessions.
+    Automatically cleans up expired or invalid sessions. Returns detailed session metadata
+    including creation time, last access time, and expiration time.
 
     Args:
         session_id: The UUID session identifier returned from login.
@@ -1817,47 +2011,66 @@ def session_status(session_id: str) -> SessionStatusResponse:
             - status: "active", "inactive", or "error"
             - session_id: The session_id being checked
             - username: (optional) The authenticated username if status is "active"
+            - created_at: (optional) ISO timestamp when session was created
+            - last_accessed: (optional) ISO timestamp of last session access
+            - expires_at: (optional) ISO timestamp when session expires
+            - time_until_expiry_seconds: (optional) Seconds until expiration
             - reason: (optional) Reason for inactive/error status (e.g., "token_invalid", "not_found")
 
     Example:
         >>> result = session_status(session_id)
         >>> if result["status"] == "active":
         ...     print(f"Logged in as: {result['username']}")
+        ...     print(f"Expires at: {result['expires_at']}")
         ... else:
         ...     print("Session expired, please login again")
     """
-    logger.debug(f"Executing session_status check for session {session_id[:8]}...")
-    client_wrapper = active_sessions.get(session_id)  # Use consistent var name
-    if client_wrapper and client_wrapper.is_authenticated:
-        try:
-            # Use pytaigaclient users.me() call
-            me = client_wrapper.api.users.me()
-            # Extract username from the returned dict
-            username = me.get("username", "Unknown")
-            logger.debug(f"Session {session_id[:8]} is active for user {username}.")
-            return {"status": "active", "session_id": session_id, "username": username}
-        except TaigaException:
-            logger.warning(
-                f"Session {session_id[:8]} found but token seems invalid (API check failed)."
-            )
-            # Clean up invalid session
-            active_sessions.pop(session_id, None)
-            return {"status": "inactive", "reason": "token_invalid", "session_id": session_id}
-        except Exception as e:  # Catch broader exceptions during the 'me' call
-            logger.error(
-                f"Unexpected error during session status check for {session_id[:8]}: {e}",
-                exc_info=True,
-            )
-            # Return a distinct status for unexpected errors during check
-            return {"status": "error", "reason": "check_failed", "session_id": session_id}
-    elif (
-        client_wrapper
-    ):  # Client exists but not authenticated (shouldn't happen with current login logic)
-        logger.warning(f"Session {session_id[:8]} exists but client wrapper is not authenticated.")
-        return {"status": "inactive", "reason": "not_authenticated", "session_id": session_id}
-    else:  # Session ID not found
-        logger.debug(f"Session {session_id[:8]} not found.")
-        return {"status": "inactive", "reason": "not_found", "session_id": session_id}
+    logger.debug(f"Checking status for session: {truncate_session_id(session_id)}")
+
+    session_info = active_sessions.get(session_id)
+
+    # Session not found
+    if not session_info:
+        return {"status": "inactive", "session_id": session_id, "reason": "not_found"}
+
+    # Check if expired
+    if session_info.is_expired():
+        _cleanup_session(session_id)
+        return {
+            "status": "inactive",
+            "session_id": session_id,
+            "reason": "expired",
+            "username": session_info.username,
+        }
+
+    # Check if authenticated
+    if not session_info.client.is_authenticated:
+        _cleanup_session(session_id)
+        return {
+            "status": "inactive",
+            "session_id": session_id,
+            "reason": "token_invalid",
+            "username": session_info.username,
+        }
+
+    # Active session - verify with API
+    try:
+        me = session_info.client.api.users.me()
+        username = me.get("username", session_info.username)
+
+        return {
+            "status": "active",
+            "session_id": session_id,
+            "username": username,
+            "created_at": session_info.created_at.isoformat(),
+            "last_accessed": session_info.last_accessed.isoformat(),
+            "expires_at": session_info.expires_at.isoformat(),
+            "time_until_expiry_seconds": int(session_info.time_until_expiry().total_seconds()),
+        }
+    except Exception as e:
+        logger.error(f"Error checking session status: {e}", exc_info=True)
+        _cleanup_session(session_id)
+        return {"status": "error", "session_id": session_id, "reason": f"api_error: {str(e)}"}
 
 
 # --- Run the server ---

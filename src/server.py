@@ -92,6 +92,35 @@ _rate_limit_lock = threading.Lock()
 # No lifespan needed for this approach
 mcp = FastMCP("Taiga Bridge (Session ID)", dependencies=["pytaigaclient"])
 
+# --- API Parameter Naming Conventions (enforced by pytaigaclient library) ---
+# These conventions standardize how we call pytaigaclient methods throughout this module.
+# Violations of these patterns may indicate library constraint issues or inconsistencies.
+#
+# LIST Operations:
+#   - Standard: user_stories.list(project_id=project_id)
+#   - Standard: tasks.list(project_id=project_id)
+#   - Exception: milestones.list(project=project_id) - library requires "project=" not "project_id="
+#   - Rationale: Taiga API query parameter is "project_id"; named parameters are explicit and self-documenting
+#
+# GET Operations:
+#   - Standard (positional): user_stories.get(resource_id) - positional for most resources
+#   - Exception (named): projects.get(project_id=project_id) - library requires named parameter
+#   - Rationale: Projects library enforces named parameter; others accept positional
+#
+# UPDATE Operations:
+#   - Projects: projects.update(project_id=id, version=v, project_data=dict)
+#   - Others: resource.edit(resource_id=id, version=v, **kwargs)
+#   - Rationale: Library enforces different method signatures
+#
+# CREATE Operations:
+#   - Standard: resource.create(project=project_id, **kwargs) - library convention
+#
+# DELETE Operations:
+#   - Standard: resource.delete(id=resource_id, version=version)
+#
+# NOTE: When adding new operations or resources, verify the expected parameter format
+#       with pytaigaclient to ensure consistency with the patterns above.
+
 # --- Session Cleanup Helper ---
 
 
@@ -726,8 +755,8 @@ def get_project(session_id: str, project_id: int) -> ProjectResponse:
     logger.info(f"Executing get_project ID {project_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
-        # Use pytaigaclient syntax: client.resource.get(project_id)
-        project = taiga_client_wrapper.api.projects.get(project_id)
+        # Use pytaigaclient syntax: client.resource.get(project_id=project_id)
+        project = taiga_client_wrapper.api.projects.get(project_id=project_id)
         # return project.to_dict() # Remove .to_dict()
         return project  # Return directly
     except TaigaException as e:
@@ -1012,8 +1041,8 @@ def list_user_stories(session_id: str, project_id: int, **filters) -> UserStoryL
         raise ValueError(str(e))
 
     try:
-        # Use pytaigaclient syntax: client.resource.list(project=..., **filters)
-        stories = taiga_client_wrapper.api.user_stories.list(project=project_id, **filters)
+        # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
+        stories = taiga_client_wrapper.api.user_stories.list(project_id=project_id, **filters)
         # return [s.to_dict() for s in stories] # Remove .to_dict()
         return stories  # Return directly
     except TaigaException as e:
@@ -1292,8 +1321,8 @@ def list_tasks(session_id: str, project_id: int, **filters) -> TaskList:
     )
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
     try:
-        # Use pytaigaclient syntax: client.resource.list(project=..., **filters)
-        tasks = taiga_client_wrapper.api.tasks.list(project=project_id, **filters)
+        # Use pytaigaclient syntax: client.resource.list(project_id=..., **filters)
+        tasks = taiga_client_wrapper.api.tasks.list(project_id=project_id, **filters)
         # return [t.to_dict() for t in tasks] # Remove .to_dict()
         return tasks  # Return directly
     except TaigaException as e:

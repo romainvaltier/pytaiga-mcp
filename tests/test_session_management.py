@@ -444,6 +444,52 @@ class TestSessionStatus:
         assert result["status"] == "inactive"
         assert result["reason"] == "not_found"
 
+    def test_session_status_token_invalid(self):
+        """Test session_status when client token is invalid"""
+        mock_client = MagicMock()
+        mock_client.is_authenticated = False  # Simulate invalid token
+
+        session_id = str(uuid.uuid4())
+        session_info = SessionInfo(session_id=session_id, client=mock_client, username="testuser")
+
+        src.server.active_sessions[session_id] = session_info
+        src.server.sessions_by_user["testuser"] = [session_id]
+
+        # Call session_status
+        result = src.server.session_status(session_id)
+
+        # Should return inactive with token_invalid reason
+        assert result["status"] == "inactive"
+        assert result["reason"] == "token_invalid"
+        assert result["username"] == "testuser"
+
+        # Session should be cleaned up
+        assert session_id not in src.server.active_sessions
+
+    def test_session_status_api_error(self):
+        """Test session_status when API call fails"""
+        mock_client = MagicMock()
+        mock_client.is_authenticated = True
+        # Simulate API error
+        mock_client.api.users.me.side_effect = Exception("API connection failed")
+
+        session_id = str(uuid.uuid4())
+        session_info = SessionInfo(session_id=session_id, client=mock_client, username="testuser")
+
+        src.server.active_sessions[session_id] = session_info
+        src.server.sessions_by_user["testuser"] = [session_id]
+
+        # Call session_status
+        result = src.server.session_status(session_id)
+
+        # Should return error status
+        assert result["status"] == "error"
+        assert result["reason"].startswith("api_error:")
+        assert "API connection failed" in result["reason"]
+
+        # Session should be cleaned up
+        assert session_id not in src.server.active_sessions
+
 
 @pytest.mark.integration
 class TestSessionLifecycle:
@@ -482,3 +528,16 @@ class TestSessionLifecycle:
                 assert session_id not in src.server.active_sessions
                 status = src.server.session_status(session_id)
                 assert status["status"] == "inactive"
+
+    def test_logout_invalid_session(self):
+        """Test logout with non-existent session returns session_not_found"""
+        # Ensure sessions are cleared
+        src.server.active_sessions.clear()
+        src.server.sessions_by_user.clear()
+
+        # Try to logout non-existent session
+        result = src.server.logout("invalid-session-id")
+
+        # Should return session_not_found status
+        assert result["status"] == "session_not_found"
+        assert result["session_id"] == "invalid-session-id"

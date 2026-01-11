@@ -408,9 +408,10 @@ Total: 195+ story points
 ### Medium Priority (Do After)
 5. US-3.3: Input Validation Test Suite
 6. US-3.4: Delete Operation Test Suite
-7. US-3.5: Edge Case Testing
-8. US-3.6: Integration Test Expansion
-9. US-4.1: Comment Management
+7. **US-2.6: Add Input Validation to Delete Operations** ⭐ NEW (Discovered during US-3.4 planning)
+8. US-3.5: Edge Case Testing
+9. US-3.6: Integration Test Expansion
+10. US-4.1: Comment Management
 
 ### Lower Priority (Future)
 10. US-4.2: Attachment Management
@@ -418,6 +419,50 @@ Total: 195+ story points
 12. US-4.4: Custom Attributes
 13. US-4.5: Bulk Operations
 14. US-4.6: Search & Advanced Filtering
+
+---
+
+## 📋 Backlog Details
+
+### US-2.6: Add Input Validation to Delete Operations ⭐ NEW
+
+**Epic**: EPIC-2 Code Quality
+**Type**: Code Quality / Bug Fix
+**Points**: 3-5
+**Priority**: 🟠 MEDIUM
+**Status**: Backlog
+**Created**: During US-3.4 planning (2026-01-11)
+**Related**: US-3.4 findings
+
+**Problem**:
+3 of 6 delete operations missing input validation, fail at API layer instead of validation layer.
+
+**Operations Affected**:
+- `delete_user_story()` - No validation
+- `delete_issue()` - No validation
+- `delete_milestone()` - No validation
+
+**Also**: Return type inconsistency (DeleteResponse vs Dict[str, Any])
+
+**Changes Required**:
+1. Add `validate_user_story_id()` call to delete_user_story()
+2. Add `validate_issue_id()` call to delete_issue()
+3. Add `validate_milestone_id()` call to delete_milestone()
+4. Standardize all delete operations to return DeleteResponse
+
+**Testing**:
+- US-3.4 test suite will document current behavior
+- This story fixes it
+- Update 18 tests in test_delete_operations.py
+
+**Files**:
+- src/server.py (3 validation calls + return types)
+- tests/test_delete_operations.py (18 test updates)
+
+**Timeline**:
+- Can start: Immediately (no blockers)
+- Recommended: After US-3.4 completion (logical sequence)
+- Sprint: Next available (Sprint 5+)
 
 ---
 

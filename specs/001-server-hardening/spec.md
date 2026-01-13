@@ -18,9 +18,9 @@
 | Sprint 1 | US-1.1, US-1.4, US-1.5, US-2.4, US-2.5 | ✅ Complete | 5 PRs merged |
 | Sprint 2 | US-1.2, US-1.3, US-2.1 | ✅ Complete | 3 PRs merged |
 | Sprint 3 | US-2.2, US-2.3, US-3.1, US-3.2 | ✅ Complete | 4 PRs merged |
-| Sprint 4 | US-2.6, US-3.3, US-3.4, US-3.5 | ⏳ In Progress | 4 stories (0 complete, 4 remaining) |
+| Sprint 4 | US-2.6, US-3.3, US-3.4, US-3.5 | ⏳ In Progress | 4 stories (1 complete, 3 remaining) |
 
-**Total**: 18/22 user stories complete (82%), Sprint 4 targets 22/22 (100%)
+**Total**: 19/22 user stories complete (86%), Sprint 4 targets 22/22 (100%)
 
 ---
 
@@ -57,9 +57,9 @@ Conducted during `/speckit.clarify` workflow to align specification with SPRINT_
   - Demonstrated to users independently
 -->
 
-### User Story 1 - Comprehensive Input Validation & Security (Priority: P1) ✅ COMPLETED (Sprint 1, 4)
+### User Story 1 - Comprehensive Input Validation & Security (Priority: P1) ✅ COMPLETED (Sprint 1, 3-4)
 
-**Status**: Partially complete - US-1.1 merged (Sprint 1 PR #1), US-3.3 in progress (Sprint 4)
+**Status**: Complete - US-1.1 merged (Sprint 1 PR #1), US-3.3 merged (Sprint 3-4 PR #13)
 
 Development teams need robust input validation across all API operations to prevent invalid data from reaching the Taiga API, ensuring secure and predictable behavior.
 
@@ -93,10 +93,11 @@ Delivers comprehensive input validation coverage across all resource types (proj
 - 100% validation layer test coverage via `tests/auth/test_input_validation.py`
 - Status: ✅ MERGED - All input validation for CRUD operations complete
 
-**Sprint 4 Remaining** (US-3.3):
-- Comprehensive test suite for validation coverage across all resource types
-- Edge case validation tests for boundary conditions
-- Status: ⏳ TODO - Create comprehensive validation test suite
+**Sprint 4 Remaining** (US-2.6, US-3.4, US-3.5):
+- US-2.6: Add input validation to 3 delete operations (delete_user_story, delete_issue, delete_milestone)
+- US-3.4: Comprehensive delete operation test suite with success and error paths
+- US-3.5: Edge case and boundary condition testing across all code paths
+- Status: ⏳ READY TO START - US-3.3 complete, US-2.6/US-3.5 have no dependencies, US-3.4 blocked by US-2.6
 
 ---
 
@@ -276,9 +277,9 @@ Delivers production-grade test coverage with clear test organization.
 
 ---
 
-### User Story US-2.6 - Add Input Validation to Delete Operations (Priority: P1) ⏳ IN PROGRESS (Sprint 4)
+### User Story US-2.6 - Add Input Validation to Delete Operations (Priority: P1) ⏳ READY TO START (Sprint 4)
 
-**Status**: Ready to start - Discovered during planning, added to Sprint 4 scope
+**Status**: Ready to start - Discovered during planning, added to Sprint 4 scope (no blocking dependencies)
 
 **Story Points**: 3-5
 
@@ -314,9 +315,9 @@ Development teams need to close a validation gap in 3 delete operations that wer
 
 ---
 
-### User Story US-3.3 - Input Validation Test Suite (Priority: P1) ⏳ IN PROGRESS (Sprint 4)
+### User Story US-3.3 - Input Validation Test Suite (Priority: P1) ✅ COMPLETE (Sprint 3-4)
 
-**Status**: Ready to start - Can run in parallel with US-2.6
+**Status**: Complete - Merged to master as PR #13 with comprehensive validation tests
 
 **Story Points**: 8
 
@@ -334,7 +335,7 @@ QA and development teams need comprehensive test coverage for input validation a
 
 1. **Given** requests with invalid inputs (negative IDs, empty strings, oversized values), **When** running validation test suite, **Then** all invalid inputs are rejected at validation layer with descriptive error messages
 
-2. **Given** validation tests for all 7 resource types (projects, epics, user stories, tasks, issues, sprints, milestones), **When** running the test suite, **Then** all 11 validation tests pass (project, epic, user_story, task, issue, sprint, milestone)
+2. **Given** validation tests for all 7 resource types (projects, epics, user stories, tasks, issues, sprints, milestones), **When** running the test suite, **Then** all 15+ validation tests pass (11 unit tests + integration tests + verification tasks)
 
 3. **Given** edge case inputs (0, -1, empty string, 255-char string, 256-char string), **When** running edge case tests, **Then** all boundary conditions are correctly handled
 
@@ -342,19 +343,19 @@ QA and development teams need comprehensive test coverage for input validation a
 
 5. **Given** integration tests for CRUD operations with validation, **When** running the integration test suite, **Then** all workflows pass end-to-end
 
-**Implementation** (Sprint 4):
-- Create comprehensive unit tests for validation across all 7 resource types in tests/auth/test_input_validation.py and resource-specific test files
-- Create integration tests for CRUD operations with validation in tests/integration/test_validation_integration.py
-- Verify validation rules for all resource types are implemented in src/validators.py
-- Verify all validation calls are present in src/server.py CRUD tools
-- Run full test suite and achieve validation test coverage >85% for validators module
-- Status: ⏳ TODO - Create comprehensive validation test suite
+**Implementation** (Sprint 3-4 - PR #13, completed):
+- ✅ Created comprehensive unit tests for validation across all 7 resource types in tests/auth/test_input_validation.py and resource-specific test files (T006-T016)
+- ✅ Created integration tests for CRUD operations with validation in tests/integration/test_validation_integration.py (T010)
+- ✅ Verified validation rules for all resource types are implemented in src/validators.py (T017-T018)
+- ✅ Verified all validation calls are present in src/server.py CRUD tools (T019)
+- ✅ Ran full test suite and verified validation test coverage >85% for validators module (T020)
+- ✅ Status: MERGED to master as PR #13 with 15 validation tests passing
 
 ---
 
-### User Story US-3.4 - Delete Operation Test Suite (Priority: P2) ⏳ IN PROGRESS (Sprint 4)
+### User Story US-3.4 - Delete Operation Test Suite (Priority: P2) ⏳ BLOCKED (Sprint 4)
 
-**Status**: Blocked by US-2.6 - Cannot start until US-2.6 validation fixes are complete
+**Status**: Blocked - Cannot start until US-2.6 validation fixes are complete (T030 must complete)
 
 **Story Points**: 8
 
@@ -394,9 +395,9 @@ QA and development teams need comprehensive test coverage for all delete operati
 
 ---
 
-### User Story US-3.5 - Edge Case & Boundary Testing (Priority: P2) ⏳ IN PROGRESS (Sprint 4)
+### User Story US-3.5 - Edge Case & Boundary Testing (Priority: P2) ⏳ READY TO START (Sprint 4)
 
-**Status**: Ready to start - Can run in parallel with US-3.4 on a separate team member
+**Status**: Ready to start - Can run in parallel with US-3.4 on a separate team member (no blocking dependencies)
 
 **Story Points**: 8
 

@@ -1412,7 +1412,7 @@ def update_task(session_id: str, task_id: int, **kwargs) -> Dict[str, Any]:
 
 
 @mcp.tool("delete_task", description="Deletes a task by its ID.")
-def delete_task(session_id: str, task_id: int) -> Dict[str, Any]:
+def delete_task(session_id: str, task_id: int) -> DeleteResponse:
     """Deletes a task by ID."""
     logger.warning(f"Executing delete_task ID {task_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
@@ -1839,7 +1839,7 @@ def update_epic(session_id: str, epic_id: int, **kwargs) -> Dict[str, Any]:
 
 
 @mcp.tool("delete_epic", description="Deletes an epic by its ID.")
-def delete_epic(session_id: str, epic_id: int) -> Dict[str, Any]:
+def delete_epic(session_id: str, epic_id: int) -> DeleteResponse:
     """Deletes an epic by ID."""
     logger.warning(f"Executing delete_epic ID {epic_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name

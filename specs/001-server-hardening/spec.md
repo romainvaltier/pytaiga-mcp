@@ -4,21 +4,23 @@
 **Created**: 2026-01-12
 **Status**: In Progress (Sprints 1-4, across multiple PRs)
 **Input**: User description: "Hardening existing MCP server with security, testing, and quality improvements"
-**Epic Scope**: Comprehensive security hardening, quality improvements, and testing infrastructure spanning Sprints 1-4
-**Completion Target**: End of Sprint 4 (Week 8) with all 5 user stories complete, >85% code coverage, production-ready
+**Epic Scope**: Comprehensive security hardening, quality improvements, and testing infrastructure spanning Sprints 1-4 (22 user stories across 5 epic categories)
+**Completion Target**: End of Sprint 4 (Week 8) with all 22 user stories complete (18 merged ✅, 4 in progress), >85% code coverage, production-ready
 
 ---
 
 ## 📋 Feature Status Summary
+
+**Story Structure**: This specification documents 22 user stories organized across 5 Epic categories (User Stories 1-5). Within each epic are multiple discrete user stories (US-1.1, US-1.2, ..., US-3.5, etc.) tracked in the roadmap. Sprint 4 adds 4 new stories (US-2.6, US-3.3, US-3.4, US-3.5) to complete the feature.
 
 | Sprint | Stories | Status | Completion |
 |--------|---------|--------|------------|
 | Sprint 1 | US-1.1, US-1.4, US-1.5, US-2.4, US-2.5 | ✅ Complete | 5 PRs merged |
 | Sprint 2 | US-1.2, US-1.3, US-2.1 | ✅ Complete | 3 PRs merged |
 | Sprint 3 | US-2.2, US-2.3, US-3.1, US-3.2 | ✅ Complete | 4 PRs merged |
-| Sprint 4 | US-3.3✅, US-2.6, US-3.4, US-3.5 | ⏳ In Progress | 4 stories (1 complete, 3 remaining) |
+| Sprint 4 | US-2.6, US-3.3, US-3.4, US-3.5 | ⏳ In Progress | 4 stories (0 complete, 4 remaining) |
 
-**Total**: 18/22 user stories complete (82%)
+**Total**: 18/22 user stories complete (82%), Sprint 4 targets 22/22 (100%)
 
 ---
 
@@ -268,23 +270,184 @@ Delivers production-grade test coverage with clear test organization.
 - Full test suite: 174 unit tests passing with zero regressions
 
 **In Progress (Sprint 4)**:
-- **US-3.3**: Input Validation Test Suite (validation coverage across all 7 resource types)
-- **US-2.6**: Add Input Validation to Delete Operations (fix missing validation in delete_user_story, delete_issue, delete_milestone)
-- **US-3.4**: Delete Operation Test Suite (comprehensive tests for all delete operations)
-- **US-3.5**: Edge Case & Boundary Testing (empty lists, boundary values, concurrent operations, very large bulk operations)
+- The remaining testing work is split into 4 discrete user stories (US-2.6, US-3.3, US-3.4, US-3.5) documented below
 - Target: >85% code coverage across all modules, <10 second test suite execution, zero flaky tests
 - Status: ⏳ TODO - Complete remaining test suites and achieve >85% coverage
 
 ---
 
+### User Story US-2.6 - Add Input Validation to Delete Operations (Priority: P1) ⏳ IN PROGRESS (Sprint 4)
+
+**Status**: Ready to start - Discovered during planning, added to Sprint 4 scope
+
+**Story Points**: 3-5
+
+Development teams need to close a validation gap in 3 delete operations that were missing input validation checks, discovered during Sprint 4 planning.
+
+**Why this priority**: Input validation is the first line of defense. Three delete operations (delete_user_story, delete_issue, delete_milestone) were discovered without validation checks during code review, creating a security/stability gap that must be fixed before comprehensive delete testing.
+
+**Independent Test**: Can be fully tested by:
+1. Testing each delete operation with negative/invalid IDs and verifying rejection
+2. Testing with valid IDs and verifying they reach the API
+3. Verifying error messages match the pattern from other delete operations
+4. Confirming return types are consistent (DeleteResponse)
+
+**Acceptance Scenarios**:
+
+1. **Given** delete_user_story() is called with a negative user story ID, **When** validation layer processes it, **Then** it is rejected with "user_story_id must be positive integer" before API call
+
+2. **Given** delete_issue() is called with a negative issue ID, **When** validation layer processes it, **Then** it is rejected with "issue_id must be positive integer" before API call
+
+3. **Given** delete_milestone() is called with a negative milestone ID, **When** validation layer processes it, **Then** it is rejected with "milestone_id must be positive integer" before API call
+
+4. **Given** valid delete operations with correct IDs, **When** validation layer processes them, **Then** they pass validation and reach the API layer
+
+5. **Given** all 3 delete operations after validation is added, **When** running the validation test suite, **Then** all invalid inputs are caught and all valid inputs pass
+
+**Implementation** (Sprint 4):
+- Add validate_user_story_id() call to delete_user_story() in src/server.py before API call
+- Add validate_issue_id() call to delete_issue() in src/server.py before API call
+- Add validate_milestone_id() call to delete_milestone() in src/server.py before API call
+- Standardize return type for all delete operations to DeleteResponse (consistency check)
+- Verify all validation tests pass before proceeding to US-3.4 (delete operation test suite)
+- Status: ⏳ TODO - Implement validation fixes and verify tests passing
+
+---
+
+### User Story US-3.3 - Input Validation Test Suite (Priority: P1) ⏳ IN PROGRESS (Sprint 4)
+
+**Status**: Ready to start - Can run in parallel with US-2.6
+
+**Story Points**: 8
+
+QA and development teams need comprehensive test coverage for input validation across all 7 resource types to ensure the validation layer is production-ready.
+
+**Why this priority**: Validation is critical; we need proof that validation rules work for all resource types and edge cases. Comprehensive tests give confidence in the validation layer before it's deployed.
+
+**Independent Test**: Can be fully tested by:
+1. Testing invalid inputs (negative IDs, empty strings, oversized strings) for all 7 resource types
+2. Testing valid inputs to ensure they pass validation
+3. Testing edge cases (boundary values, special characters, max-length strings)
+4. Verifying all error messages are descriptive and actionable
+
+**Acceptance Scenarios**:
+
+1. **Given** requests with invalid inputs (negative IDs, empty strings, oversized values), **When** running validation test suite, **Then** all invalid inputs are rejected at validation layer with descriptive error messages
+
+2. **Given** validation tests for all 7 resource types (projects, epics, user stories, tasks, issues, sprints, milestones), **When** running the test suite, **Then** all 11 validation tests pass (project, epic, user_story, task, issue, sprint, milestone)
+
+3. **Given** edge case inputs (0, -1, empty string, 255-char string, 256-char string), **When** running edge case tests, **Then** all boundary conditions are correctly handled
+
+4. **Given** valid project creation requests, **When** validation layer processes them, **Then** they pass validation and reach the API layer
+
+5. **Given** integration tests for CRUD operations with validation, **When** running the integration test suite, **Then** all workflows pass end-to-end
+
+**Implementation** (Sprint 4):
+- Create comprehensive unit tests for validation across all 7 resource types in tests/auth/test_input_validation.py and resource-specific test files
+- Create integration tests for CRUD operations with validation in tests/integration/test_validation_integration.py
+- Verify validation rules for all resource types are implemented in src/validators.py
+- Verify all validation calls are present in src/server.py CRUD tools
+- Run full test suite and achieve validation test coverage >85% for validators module
+- Status: ⏳ TODO - Create comprehensive validation test suite
+
+---
+
+### User Story US-3.4 - Delete Operation Test Suite (Priority: P2) ⏳ IN PROGRESS (Sprint 4)
+
+**Status**: Blocked by US-2.6 - Cannot start until US-2.6 validation fixes are complete
+
+**Story Points**: 8
+
+**Blocking Trigger**: Unblock when US-2.6 task T030 (delete validation tests passing) is complete. This ensures we test the correct (validated) implementation, not the buggy code.
+
+QA and development teams need comprehensive test coverage for all delete operations to ensure they work correctly, handle errors gracefully, and maintain consistent return types.
+
+**Why this priority**: Delete operations are critical and must be thoroughly tested. We have 6 delete operations (projects, epics, user stories, tasks, issues, sprints, milestones) each with multiple error paths (404, 403, 409). High coverage ensures data integrity.
+
+**Independent Test**: Can be fully tested by:
+1. Testing each delete operation with valid IDs (success path)
+2. Testing each delete operation with invalid/non-existent IDs (error paths)
+3. Testing version conflicts and cascade issues
+4. Testing that return types are consistent across all operations
+5. Running complete delete workflows in integration tests
+
+**Acceptance Scenarios**:
+
+1. **Given** delete operations for all 6 resource types with valid IDs, **When** running success path tests, **Then** all operations succeed and return DeleteResponse
+
+2. **Given** delete operations with invalid IDs (404, 403, 409 errors), **When** error path tests run, **Then** all error conditions are caught and return user-friendly messages
+
+3. **Given** delete operations on resources with version conflicts, **When** attempting to delete, **Then** 409 conflict errors are caught and include version mismatch information
+
+4. **Given** return types from all delete operations, **When** checking consistency, **Then** all return DeleteResponse with identical structure
+
+5. **Given** complete delete workflows (create → read → delete), **When** running integration tests, **Then** all workflows pass end-to-end
+
+**Implementation** (Sprint 4 - After US-2.6 complete):
+- Create unit tests for all 6 delete operations covering success paths in tests/projects/test_delete_operations.py, tests/epics/test_delete_operations.py, etc.
+- Create unit tests for delete error paths (404, 403, 409) in tests/test_delete_operations.py
+- Create integration tests for complete delete workflows in tests/integration/test_workflows.py
+- Verify error handling for delete operations in src/server.py: catch 404, 403, 409 with user-friendly messages
+- Verify return type consistency: all delete operations return DeleteResponse
+- Run all delete operation tests and achieve delete operation coverage ≥90%
+- Status: ⏳ TODO - Complete delete operation test suite after US-2.6
+
+---
+
+### User Story US-3.5 - Edge Case & Boundary Testing (Priority: P2) ⏳ IN PROGRESS (Sprint 4)
+
+**Status**: Ready to start - Can run in parallel with US-3.4 on a separate team member
+
+**Story Points**: 8
+
+QA and development teams need comprehensive edge case and boundary value testing to ensure the system handles unusual inputs, concurrent operations, and resource limits gracefully.
+
+**Why this priority**: Edge cases are where production systems fail. Boundary testing (empty lists, max values, concurrent operations) ensures robustness and prevents customer-impacting bugs.
+
+**Independent Test**: Can be fully tested by:
+1. Testing edge cases (empty lists, boundary values like 0, -1, max integers)
+2. Testing concurrent operations and resource conflicts
+3. Testing timeout and network error scenarios
+4. Testing very large bulk operations (10k+ items)
+5. Testing session expiry and rate limit edge cases
+6. Running complete workflows with all edge case combinations
+
+**Acceptance Scenarios**:
+
+1. **Given** operations with empty list results, boundary values (0, -1, max int), **When** running edge case tests, **Then** all conditions are handled correctly with appropriate responses (empty results vs errors)
+
+2. **Given** concurrent operations modifying the same resource, **When** attempting concurrent modifications, **Then** version conflicts are detected and returned with clear error messages
+
+3. **Given** operations with timeout or network errors, **When** errors occur, **Then** user receives "request timeout - server may be busy, please try again" with retry guidance
+
+4. **Given** very large bulk operations with 10k+ items, **When** processing, **Then** operations complete in <2 seconds with <100MB memory per session
+
+5. **Given** session expiry or rate limit exceeded during operations, **When** conditions occur, **Then** operations fail with appropriate error messages and no data corruption
+
+**Implementation** (Sprint 4 - Parallel with US-3.4):
+- Create unit tests for empty list handling in tests/integration/test_edge_cases.py
+- Create boundary value tests (0, -1, max int) in tests/integration/test_edge_cases.py
+- Create concurrent operation tests for resource conflicts in tests/integration/test_edge_cases.py
+- Create timeout/network error tests in tests/error_handling/test_network_errors.py
+- Create large bulk operation tests (10k+ items) in tests/integration/test_bulk_operations.py
+- Create session expiry and rate limit edge case tests in tests/auth/test_session_edge_cases.py, tests/auth/test_rate_limit_edge_cases.py
+- Create complete workflow edge case tests in tests/integration/test_workflows_edge_cases.py
+- Verify session expiry handling, rate limit handling, timeout handling, and concurrent modification handling in src/server.py
+- Run all edge case tests and achieve >85% total code coverage via pytest --cov
+- Status: ⏳ TODO - Complete edge case test suite
+
+---
+
 ### Edge Cases
 
-- What happens when a user attempts to perform an operation after their session expires?
-- How does the system handle rapid-fire requests that exceed rate limits?
-- What happens when the Taiga API is temporarily unavailable during an operation?
-- How does the system handle concurrent requests modifying the same resource (conflict/version issues)?
-- What happens when input validation rules conflict with Taiga API constraints?
-- How does the system handle very large bulk operations (lists with 10k+ items)?
+Edge cases are explicitly tested in **User Story US-3.5** (Edge Case & Boundary Testing):
+
+- **Session Expiry**: What happens when a user attempts to perform an operation after their session expires? (Covered by US-3.5 Acceptance Scenario 5)
+- **Rate Limiting**: How does the system handle rapid-fire requests that exceed rate limits? (Covered by US-3.5 implementation task: rate limit edge case tests)
+- **API Unavailability**: What happens when the Taiga API is temporarily unavailable during an operation? (Covered by US-3.5 Acceptance Scenario 3 - timeout/network error handling)
+- **Concurrent Modifications**: How does the system handle concurrent requests modifying the same resource (conflict/version issues)? (Covered by US-3.5 Acceptance Scenario 2)
+- **Validation Conflicts**: What happens when input validation rules conflict with Taiga API constraints? (Covered by US-3.3 edge case tests for boundary values)
+- **Bulk Operations**: How does the system handle very large bulk operations (lists with 10k+ items)? (Covered by US-3.5 Acceptance Scenario 4 - <2 seconds, <100MB memory constraint)
 
 ## Requirements *(mandatory)*
 
@@ -367,6 +530,12 @@ Delivers production-grade test coverage with clear test organization.
 - Type hints are aspirational for production code quality; existing code will be incrementally updated
 - Code coverage >85% balances pragmatism with production readiness (100% unrealistic)
 - Existing test infrastructure (pytest, conftest fixtures) is adequate for test organization
-- **Feature scope**: This specification encompasses the complete hardening epic (Sprints 1-4), not just new work. Sprints 1-3 are already merged to master; Sprint 4 is the remaining work.
-- **Sprint 4 adjustment**: Discovered US-2.6 (Add Input Validation to Delete Operations) during planning; included in Sprint 4 scope with 3-5 points estimated effort
-- **Feature completion**: Feature is complete at end of Sprint 4 (all 5 user stories done, >85% coverage). Milestone 1 (v0.2.0) releases this feature; Sprint 5+ are continuation phases
+- **Story Structure**: This specification documents 22 user stories organized into 5 Epic categories (User Stories 1-5). Each epic contains multiple discrete user stories (US-1.1, US-1.2, ..., US-3.5). All 22 stories are part of the hardening feature spanning Sprints 1-4.
+- **Feature scope**: This specification encompasses the complete hardening epic (Sprints 1-4), not just new work. Sprints 1-3 are already merged to master; Sprint 4 adds 4 new discrete user stories (US-2.6, US-3.3, US-3.4, US-3.5) to complete the feature.
+- **Sprint 4 Stories**:
+  - **US-2.6** (Add Input Validation to Delete Operations): 3-5 points, discovered during planning, closes a validation gap in 3 delete operations
+  - **US-3.3** (Input Validation Test Suite): 8 points, comprehensive tests for validation layer across all 7 resource types, can run in parallel with US-2.6
+  - **US-3.4** (Delete Operation Test Suite): 8 points, blocked by US-2.6 (must implement fixes before testing them)
+  - **US-3.5** (Edge Case & Boundary Testing): 8 points, can run in parallel with US-3.4 on a separate team member
+  - **Total Sprint 4**: 27-29 points, 4 discrete stories with explicit dependencies and parallel opportunities
+- **Feature completion**: Feature is complete at end of Sprint 4 (all 22 user stories done: 18 merged ✅ + 4 new ⏳, >85% coverage). Milestone 1 (v0.2.0) releases this feature; Sprint 5+ are continuation phases

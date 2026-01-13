@@ -1200,12 +1200,20 @@ def update_user_story(session_id: str, user_story_id: int, **kwargs) -> Dict[str
 
 
 @mcp.tool("delete_user_story", description="Deletes a user story by its ID.")
-def delete_user_story(session_id: str, user_story_id: int) -> Dict[str, Any]:
+def delete_user_story(session_id: str, user_story_id: int) -> DeleteResponse:
     """Deletes a user story by ID."""
     logger.warning(
         f"Executing delete_user_story ID {user_story_id} for session {session_id[:8]}..."
     )
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
+
+    # Input validation
+    try:
+        user_story_id = validate_user_story_id(user_story_id)
+    except ValidationError as e:
+        logger.warning(f"Input validation failed for delete_user_story: {e}")
+        raise ValueError(str(e))
+
     try:
         # Use pytaigaclient syntax: client.resource.delete(id=...)
         taiga_client_wrapper.api.user_stories.delete(id=user_story_id)
@@ -1564,10 +1572,18 @@ def update_issue(session_id: str, issue_id: int, **kwargs) -> Dict[str, Any]:
 
 
 @mcp.tool("delete_issue", description="Deletes an issue by its ID.")
-def delete_issue(session_id: str, issue_id: int) -> Dict[str, Any]:
+def delete_issue(session_id: str, issue_id: int) -> DeleteResponse:
     """Deletes an issue by ID."""
     logger.warning(f"Executing delete_issue ID {issue_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
+
+    # Input validation
+    try:
+        issue_id = validate_issue_id(issue_id)
+    except ValidationError as e:
+        logger.warning(f"Input validation failed for delete_issue: {e}")
+        raise ValueError(str(e))
+
     try:
         # Use pytaigaclient syntax: client.resource.delete(id=...)
         taiga_client_wrapper.api.issues.delete(id=issue_id)
@@ -1972,10 +1988,18 @@ def update_milestone(session_id: str, milestone_id: int, **kwargs) -> Dict[str, 
 
 
 @mcp.tool("delete_milestone", description="Deletes a milestone by its ID.")
-def delete_milestone(session_id: str, milestone_id: int) -> Dict[str, Any]:
+def delete_milestone(session_id: str, milestone_id: int) -> DeleteResponse:
     """Deletes a milestone by ID."""
     logger.warning(f"Executing delete_milestone ID {milestone_id} for session {session_id[:8]}...")
     taiga_client_wrapper = _get_authenticated_client(session_id)  # Use wrapper variable name
+
+    # Input validation
+    try:
+        milestone_id = validate_milestone_id(milestone_id)
+    except ValidationError as e:
+        logger.warning(f"Input validation failed for delete_milestone: {e}")
+        raise ValueError(str(e))
+
     try:
         # Use pytaigaclient syntax: client.resource.delete(id=...)
         taiga_client_wrapper.api.milestones.delete(id=milestone_id)

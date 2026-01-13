@@ -388,3 +388,93 @@ The Taiga API client implements:
 - Rate limiting (100 requests/minute by default)
 - Retry mechanism with exponential backoff for failed requests
 - Session cleanup removes expired sessions from memory
+
+## Sprint 4 Patterns & Configurations
+
+Sprint 4 (Server Hardening Phase 3-5) introduced the following new patterns and configurations:
+
+### Code Quality Tools Configuration
+
+**Type Checking (mypy)**:
+- Python 3.10 compatibility: Use conditional import for `NotRequired`:
+  ```python
+  import sys
+  if sys.version_info >= (3, 11):
+      from typing import NotRequired
+  else:
+      from typing_extensions import NotRequired
+  ```
+- Configure in `pyproject.toml`:
+  ```toml
+  [tool.mypy]
+  python_version = "3.10"
+  disallow_untyped_defs = false
+  ignore_missing_imports = true
+  warn_return_any = false
+  check_untyped_defs = false
+  [[tool.mypy.overrides]]
+  module = "pytaigaclient.*"
+  ignore_missing_imports = true
+  ```
+
+**Linting (flake8)**:
+- Use `.flake8` config file (not pyproject.toml) for compatibility:
+  ```ini
+  [flake8]
+  max-line-length = 100
+  ignore = E501,F401
+  exclude = .git,__pycache__,venv,.venv
+  ```
+- Line length set to 100 to match black formatter
+
+**TypedDict Patterns**:
+- For partial optional fields, use inherited TypedDict with `total=False`:
+  ```python
+  class _RequiredFields(TypedDict):
+      """Required fields."""
+      status: str
+      session_id: str
+
+  class ResponseType(_RequiredFields, total=False):
+      """Full response with optional fields."""
+      optional_field: str
+  ```
+
+### Edge Case Testing Patterns
+
+Sprint 4 testing focuses on:
+- **Empty list handling**: Test all list operations return empty list correctly
+- **Boundary values**: Test ID edge cases (zero, negative, max 32-bit int)
+- **Large lists**: Test operations with 1000+ items
+- **Error propagation**: Verify TaigaException and network errors are propagated
+- **Session management**: Test expired/invalid sessions are properly rejected
+- **Sequential operations**: Test bulk operations don't interfere with each other
+
+Example test structure:
+```python
+class TestEmptyListHandling:
+    @patch("src.server._get_authenticated_client")
+    def test_list_projects_empty(self, mock_auth):
+        """Should handle empty project list"""
+        from src.server import list_projects
+        mock_client = Mock()
+        mock_auth.return_value = mock_client
+        mock_client.api.projects.list.return_value = []
+
+        result = list_projects(session_id="test")
+        assert result == []
+```
+
+### Test Quality Gates
+
+Phase 6 Quality Gates (all must pass for v0.2.0 release):
+1. **Code Formatting**: `black src/` passes (100 char lines)
+2. **Import Organization**: `isort src/` passes
+3. **Type Checking**: `mypy src/` passes with Python 3.10 compatibility
+4. **Linting**: `flake8 src/` passes (ignoring E501, F401)
+5. **Test Coverage**: pytest --cov=src shows >70% coverage (target >85% post-MVP)
+6. **Test Performance**: All tests complete in <10 seconds (currently ~1.2s)
+7. **Test Flakiness**: Run full suite 3x with zero flaky tests
+8. **Regression Testing**: 200+ tests pass consistently
+9. **Documentation**: CLAUDE.md updated with new patterns
+10. **End-to-End**: Manual verification of key workflows

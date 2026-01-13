@@ -6,6 +6,7 @@ strict type checking and improved IDE support.
 """
 
 import os
+import sys
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -14,10 +15,10 @@ from typing import TYPE_CHECKING, List, Optional, TypedDict
 if TYPE_CHECKING:
     from src.taiga_client import TaigaClientWrapper
 
-try:
+# For Python 3.10 compatibility, use typing_extensions for NotRequired
+if sys.version_info >= (3, 11):
     from typing import NotRequired
-except ImportError:
-    # Python < 3.11
+else:
     from typing_extensions import NotRequired
 
 
@@ -37,17 +38,22 @@ class LogoutResponse(TypedDict):
     session_id: str
 
 
-class SessionStatusResponse(TypedDict):
-    """Response from session_status tool."""
+class _SessionStatusRequired(TypedDict):
+    """Required fields for session status response."""
 
     status: str
     session_id: str
-    username: NotRequired[str]
-    reason: NotRequired[str]
-    created_at: NotRequired[str]
-    last_accessed: NotRequired[str]
-    expires_at: NotRequired[str]
-    time_until_expiry_seconds: NotRequired[int]
+
+
+class SessionStatusResponse(_SessionStatusRequired, total=False):
+    """Response from session_status tool."""
+
+    username: str
+    reason: str
+    created_at: str
+    last_accessed: str
+    expires_at: str
+    time_until_expiry_seconds: int
 
 
 # --- Status/Metadata Response Types ---
@@ -93,10 +99,16 @@ class IssueTypeResponse(TypedDict):
 # --- Standard Delete Response Type ---
 
 
-class DeleteResponse(TypedDict):
+class DeleteResponse(TypedDict, total=False):
     """Response from delete operations."""
 
     status: str
+    project_id: int
+    epic_id: int
+    user_story_id: int
+    task_id: int
+    issue_id: int
+    milestone_id: int
 
 
 # --- Project Response Types ---
@@ -376,4 +388,6 @@ class RateLimitInfo:
         """Return seconds remaining in lockout period."""
         if not self.is_locked_out():
             return 0
+        # Type guard: is_locked_out() ensures locked_until is not None
+        assert self.locked_until is not None
         return int((self.locked_until - datetime.utcnow()).total_seconds())

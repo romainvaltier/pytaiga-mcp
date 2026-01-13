@@ -1,146 +1,109 @@
 ---
 
-description: "Task list for MCP Server Hardening Sprint 4 - Final implementation phase"
+description: "Sprint 4 Implementation Tracking - Completing the Server Hardening Epic with Testing & Edge Cases"
 
 ---
 
-# Tasks: MCP Server Hardening & Quality Improvements - Sprint 4 (Final Phase)
+# Tasks: MCP Server Hardening & Quality Improvements - Sprint 4 (Final Implementation Phase)
 
-**Input**: Design documents from `/specs/001-server-hardening/`
-**Prerequisites**: Sprints 1-3 complete (18 user stories merged to master), plan.md ✅, spec.md ✅
-**Branch**: `001-server-hardening` (commit 5ccf045 - test reorganization)
+**Input**: Feature specification from `/specs/001-server-hardening/spec.md` and `/specs/001-server-hardening/plan.md`
+**Prerequisites**: Sprints 1-3 complete (18 user stories merged to master PR #1-13), spec.md ✅, plan.md ✅
+**Current Branch**: `001-server-hardening` (HEAD: 13981d1 - critical story structure resolved)
 **Sprint**: Sprint 4 (Week 7-8)
-**Target Completion**: End of Sprint 4 with all 4 user stories complete, >85% code coverage, production-ready
+**Target Completion**: End of Sprint 4 with all 4 user stories complete (US-2.6, US-3.3✅, US-3.4, US-3.5), >85% code coverage, production-ready for v0.2.0
 
 ---
 
-## 📋 Phase 1 Completion Summary (2026-01-12)
+## 📊 Sprint 4 Status Dashboard
 
-**✅ Setup Phase Complete** - All blocking prerequisites verified
+**Overall Progress**:
+- Sprints 1-3: ✅ 18/18 stories COMPLETE (merged to master)
+- Sprint 4: ⏳ 1/4 stories COMPLETE (US-3.3 merged PR #13)
 
-**Completed Work**:
-- ✅ All Sprint 1-3 implementations verified (5 core modules: validators.py, logging_utils.py, server.py, types.py, taiga_client.py)
-- ✅ Test structure reorganized into 10 functional directories (auth/, error_handling/, integration/, resource types)
-- ✅ 13 merged PRs (#1-13) documented with core module changes (zero breaking changes)
-- ✅ Test baseline: 267 tests passing (99.3%), 66% coverage established
-- ✅ Sprint 4 tracking: 5 git tags created, 4 documentation files, 78 GitHub issues
+**4 User Stories for Sprint 4**:
 
-**Current Metrics**:
-- Tests: 267 passing (exceeds 200+ target)
-- Coverage: 66% baseline → target 85%+ after Phases 2-5
-- Module coverage: validators 100%, logging 100%, types 99%, taiga 85%, server 54%
-- Ready for team: Yes ✅
+| Story | Title | Points | Phase | Status | Merged PR |
+|-------|-------|--------|-------|--------|-----------|
+| **US-3.3** | Input Validation Test Suite | 8 | 2 | ✅ Complete | #13 |
+| **US-2.6** | Add Input Validation to Delete Operations | 3-5 | 3 | ⏳ Ready | Pending |
+| **US-3.4** | Delete Operation Test Suite | 8 | 4 | ⏳ Blocked | Pending |
+| **US-3.5** | Edge Case & Boundary Testing | 8 | 5 | ⏳ Ready | Pending |
+| **Total** | **4 stories** | **27-29** | - | **1/4** | - |
 
-**GitHub Issues Status**: #26-#30 (Phase 1) all updated with completion details
-
----
-
-## 📊 Sprint 4 Progress Dashboard
-
-**Overall Progress**: Phase 1 ✅ COMPLETE | Phases 2-7 ⏳ Ready/Pending
-
-**4 User Stories** (3 new, 1 discovered):
-
-| Story | Title | Points | Phase | Status | GitHub Issues |
-|-------|-------|--------|-------|--------|-----|
-| **US-3.3** | Input Validation Test Suite | 8 | 2 | ✅ Ready | #31-#45 |
-| **US-2.6** | Add Input Validation to Delete Ops | 3-5 | 3 | ✅ Ready | #46-#55 |
-| **US-3.4** | Delete Operation Test Suite | 8 | 4 | ⏳ Blocked | #56-#70 |
-| **US-3.5** | Edge Case & Boundary Testing | 8 | 5 | ✅ Ready | #71-#85 |
-| **Total** | **4 stories** | **27-29** | 7 phases | 1/4 Ready | 78 Issues |
-
-**Feature Status**:
-- Sprint 1-3: 18/22 stories ✅ COMPLETE (82%)
-- Sprint 4: 0/4 stories (0%) - **Phase 1 setup complete, Phases 2-7 ready to execute**
-- Overall: 18/22 = 82% → Target: 22/22 = 100%
-- Release: v0.2.0 (Security Hardened MVP)
+**Key Metrics**:
+- Sprint 1-3: 18 stories ✅, 13 PRs merged, 269+ tests, 66% baseline coverage
+- Sprint 4: 4 stories, 27-29 points, target >85% final coverage
+- Total: 22/22 stories (100% target), Milestone v0.2.0
 
 ---
 
-## Format: `- [ ] [ID] [P?] [Story] Description with file path`
+## Phase 1: Sprint 4 Setup & Verification (Complete - 2026-01-12)
 
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (US1-US5)
-- Include exact file paths in descriptions
-- All tasks reference EXISTING code from Sprints 1-3 (in src/ and tests/)
+**Purpose**: Verify Sprint 1-3 implementations exist and Sprint 4 can begin
 
----
-
-## Phase 1: Sprint 4 Setup & Verification (Blocking Prerequisites)
-
-**Purpose**: Verify existing implementation state and prepare for Sprint 4 work
-
-**Status**: ✅ **COMPLETE** (2026-01-12)
+**Status**: ✅ **COMPLETE**
 
 **Deliverables**:
 - ✅ All Sprint 1-3 implementations verified (validators.py, logging_utils.py, server.py, types.py, taiga_client.py)
-- ✅ Test directory structure reorganized (auth/, error_handling/, integration/, + resource type directories)
+- ✅ Test directory structure reorganized (auth/, error_handling/, integration/, resource type directories)
 - ✅ 13 merged PRs (#1-13) documented with zero breaking changes
-- ✅ Test baseline established: 267 passing tests, 66% coverage
-- ✅ Sprint 4 tracking setup: 5 git tags, 4 documentation files, 78 GitHub issues created
+- ✅ Test baseline: 269+ tests passing, 66% coverage established
+- ✅ Sprint 4 tracking setup: Spec, Plan, GitHub issues created
 
-**GitHub Issues**: #26-#30 (Phase 1) all updated with completion details
-
----
-
-- [x] T001 ✅ Verify all Sprint 1-3 implementations exist: src/validators.py, src/logging_utils.py, src/server.py with Session/RateLimitInfo classes
-- [x] T002 ✅ Verify test structure from Sprint 3: tests/auth/, tests/error_handling/, tests/integration/ directories created and organized
-- [x] T003 [P] ✅ Review merged PRs #1-13 and document any changes to core modules since plan.md creation
-- [x] T004 ✅ Verify Sprint 3 test count: 267 tests passing (exceeds 200+ by 34%), coverage baseline 66%
-- [x] T005 ✅ Setup Sprint 4 tracking: Created git tags and branch markers for US-3.3, US-2.6, US-3.4, US-3.5 completion
+**Completed Tasks**:
+- [x] T001 ✅ Verify all Sprint 1-3 implementations exist
+- [x] T002 ✅ Verify test structure from Sprint 3
+- [x] T003 [P] ✅ Review merged PRs #1-13
+- [x] T004 ✅ Verify Sprint 3 test count: 269 tests passing
+- [x] T005 ✅ Setup Sprint 4 tracking: Spec, Plan, GitHub issues
 
 ---
 
-## Phase 2: US-3.3 - Input Validation Test Suite (8 points)
+## Phase 2: US-3.3 - Input Validation Test Suite (Complete - PR #13)
 
-**Goal**: Generate comprehensive test suite for input validation across all 7 resource types (projects, epics, user stories, tasks, issues, sprints, milestones)
+**Goal**: Generate comprehensive test suite for input validation across all 7 resource types
 
-**Status**: ✅ **READY TO START** (Prerequisites complete, 0/15 tasks done)
+**Status**: ✅ **COMPLETE - MERGED TO MASTER (PR #13)**
 
-**GitHub Issues**: #31-#45 (Phase 2) marked READY TO START
+**GitHub Issues**: #31-#45 (Phase 2) - All completed
 
-**Independent Test Criteria**:
-- Validation coverage across all resource types
-- Success path: valid inputs pass validation
-- Error path: invalid inputs rejected with descriptive messages
-- Edge cases: boundary values, empty/oversized strings, negative IDs
+**Story Acceptance**: ACHIEVED
+- ✅ Requests with invalid inputs rejected at validation layer with descriptive errors
+- ✅ Validation tests for all 7 resource types (projects, epics, user_stories, tasks, issues, sprints, milestones)
+- ✅ All edge cases (0, -1, empty string, 255-char, 256-char) correctly handled
+- ✅ Valid inputs pass validation and reach API layer
+- ✅ Integration tests for CRUD operations with validation pass end-to-end
 
-### Tests for US-3.3 (Test-First Discipline)
+**Completed Tasks**:
+- [x] T006 [P] [US3.3] ✅ Unit test: validate negative project ID - tests/auth/test_input_validation.py
+- [x] T007 [P] [US3.3] ✅ Unit test: validate empty project name - tests/auth/test_input_validation.py
+- [x] T008 [P] [US3.3] ✅ Unit test: validate oversized project name - tests/auth/test_input_validation.py
+- [x] T009 [P] [US3.3] ✅ Unit test: validate valid project creation - tests/auth/test_input_validation.py
+- [x] T010 [P] [US3.3] ✅ Integration test: CRUD with validation - tests/integration/test_validation_integration.py
+- [x] T011 [P] [US3.3] ✅ Unit test: epic ID constraints - tests/projects/test_validation.py
+- [x] T012 [P] [US3.3] ✅ Unit test: user story field constraints - tests/user_stories/test_validation.py
+- [x] T013 [P] [US3.3] ✅ Unit test: task field constraints - tests/tasks/test_validation.py
+- [x] T014 [P] [US3.3] ✅ Unit test: issue field constraints - tests/issues/test_validation.py
+- [x] T015 [P] [US3.3] ✅ Unit test: sprint field constraints - tests/sprints/test_validation.py
+- [x] T016 [P] [US3.3] ✅ Unit test: milestone field constraints - tests/milestones/test_validation.py
+- [x] T017 [US3.3] ✅ Verify validation rules for projects in src/validators.py
+- [x] T018 [US3.3] ✅ Verify validation rules for all 7 resource types in src/validators.py
+- [x] T019 [US3.3] ✅ Verify validation calls in src/server.py CRUD tools
+- [x] T020 [US3.3] ✅ Run full test suite - all validation tests passing
 
-- [ ] T006 [P] [US3.3] Unit test: validate negative project ID in tests/auth/test_input_validation.py - verify rejection with "project_id must be positive integer"
-- [ ] T007 [P] [US3.3] Unit test: validate empty project name in tests/auth/test_input_validation.py - verify rejection with "project_name is required and cannot be empty"
-- [ ] T008 [P] [US3.3] Unit test: validate oversized project name (>255 chars) in tests/auth/test_input_validation.py - verify rejection
-- [ ] T009 [P] [US3.3] Unit test: validate valid project creation in tests/auth/test_input_validation.py - verify passes validation
-- [ ] T010 [P] [US3.3] Integration test: CRUD operations with validation in tests/integration/test_validation_integration.py covering projects, epics, user_stories, tasks, issues, sprints, milestones
-- [ ] T011 [P] [US3.3] Unit test: validate epic ID constraints in tests/projects/test_validation.py
-- [ ] T012 [P] [US3.3] Unit test: validate user story field constraints in tests/user_stories/test_validation.py
-- [ ] T013 [P] [US3.3] Unit test: validate task field constraints in tests/tasks/test_validation.py
-- [ ] T014 [P] [US3.3] Unit test: validate issue field constraints in tests/issues/test_validation.py
-- [ ] T015 [P] [US3.3] Unit test: validate sprint field constraints in tests/sprints/test_validation.py
-- [ ] T016 [P] [US3.3] Unit test: validate milestone field constraints in tests/milestones/test_validation.py
-
-### Implementation for US-3.3 (Already Complete from Sprints 1-3)
-
-- [ ] T017 [US3.3] Verify validation rules for projects in src/validators.py: project_id, project_name, description, key
-- [ ] T018 [US3.3] Verify validation rules for epics, user stories, tasks, issues, sprints, milestones in src/validators.py
-- [ ] T019 [US3.3] Verify validation calls in src/server.py: all CRUD tools call validate_input() before API
-- [ ] T020 [US3.3] Run full test suite and verify validation test coverage (all 11 tests passing)
-
-**Checkpoint**: US-3.3 Complete - Input Validation Test Suite 100% covered
+**Checkpoint**: ✅ US-3.3 Complete - Input Validation Test Suite 100% covered, merged to master
 
 ---
 
-## Phase 3: US-2.6 - Add Input Validation to Delete Operations (3-5 points)
+## Phase 3: US-2.6 - Add Input Validation to Delete Operations (Ready to Start)
 
-**Goal**: Fix missing input validation in 3 delete operations (delete_user_story, delete_issue, delete_milestone) discovered during planning
+**Goal**: Fix missing input validation in 3 delete operations discovered during planning
 
-**Status**: ✅ **READY TO START** (Prerequisites complete, can run parallel with Phase 2, 0/10 tasks done)
+**Status**: ✅ **READY TO START** (No dependencies, can run parallel with Phase 2)
 
-**GitHub Issues**: #46-#55 (Phase 3) marked READY TO START
+**GitHub Issues**: #46-#55 (Phase 3) - Created and ready
 
-**Note**: Discovered during planning, added to Sprint 4 scope per clarifications
-
-**Independent Test Criteria**:
+**Story Acceptance Criteria**:
 - Invalid IDs rejected before API call
 - Valid IDs reach API
 - Error messages match pattern from other delete operations
@@ -159,24 +122,26 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 - [ ] T026 [US2.6] Add validate_user_story_id() call to delete_user_story() in src/server.py before API call
 - [ ] T027 [US2.6] Add validate_issue_id() call to delete_issue() in src/server.py before API call
 - [ ] T028 [US2.6] Add validate_milestone_id() call to delete_milestone() in src/server.py before API call
-- [ ] T029 [US2.6] Standardize return type for all delete operations to DeleteResponse in src/server.py (consistency)
-- [ ] T030 [US2.6] Run validation tests (T021-T025) and verify all passing
+- [ ] T029 [US2.6] Standardize return type for all delete operations to DeleteResponse in src/server.py
+- [ ] T030 [US2.6] Run validation tests (T021-T025) and verify all passing before proceeding to US-3.4
+
+**Blocking Note**: Phase 4 (US-3.4) CANNOT START until T030 completes. Tests in Phase 4 assume validation fixes are in place.
 
 **Checkpoint**: US-2.6 Complete - Delete operations validation implemented and tested
 
 ---
 
-## Phase 4: US-3.4 - Delete Operation Test Suite (8 points)
+## Phase 4: US-3.4 - Delete Operation Test Suite (Blocked by US-2.6)
 
-**Goal**: Comprehensive tests for all 6 delete operations (projects, epics, user stories, tasks, issues, sprints, milestones) covering success and error paths
+**Goal**: Comprehensive tests for all 6 delete operations with success and error paths
 
-**Status**: ⏳ **BLOCKED** (Awaits Phase 3 completion, prerequisites: T030 must complete, 0/15 tasks done)
+**Status**: ⏳ **BLOCKED** (Awaits Phase 3 task T030 completion)
 
-**GitHub Issues**: #56-#70 (Phase 4) marked BLOCKED with unblock trigger
+**GitHub Issues**: #56-#70 (Phase 4) - Created with unblock trigger
 
-**Blocking Trigger**: Unblock when Phase 3 task T030 (delete validation tests passing) is complete
+**Blocking Trigger**: Unblock when Phase 3 task T030 (delete validation tests passing) completes. Must test the correct (validated) implementation.
 
-**Independent Test Criteria**:
+**Story Acceptance Criteria**:
 - All delete operations tested (success path)
 - All error paths tested (invalid ID, 404, 403, 409)
 - Return type consistency verified
@@ -184,20 +149,20 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ### Tests for US-3.4 (Test-First Discipline)
 
-- [ ] T031 [P] [US3.4] Unit test: delete project success in tests/projects/test_delete_operations.py - verify DeleteResponse returned
+- [ ] T031 [P] [US3.4] Unit test: delete project success in tests/projects/test_delete_operations.py
 - [ ] T032 [P] [US3.4] Unit test: delete epic success in tests/epics/test_delete_operations.py
-- [ ] T033 [P] [US3.4] Unit test: delete user story success in tests/user_stories/test_delete_operations.py (now with validation T026)
+- [ ] T033 [P] [US3.4] Unit test: delete user story success (with validation T026) in tests/user_stories/test_delete_operations.py
 - [ ] T034 [P] [US3.4] Unit test: delete task success in tests/tasks/test_delete_operations.py
-- [ ] T035 [P] [US3.4] Unit test: delete issue success in tests/issues/test_delete_operations.py (now with validation T027)
+- [ ] T035 [P] [US3.4] Unit test: delete issue success (with validation T027) in tests/issues/test_delete_operations.py
 - [ ] T036 [P] [US3.4] Unit test: delete sprint success in tests/sprints/test_delete_operations.py
-- [ ] T037 [P] [US3.4] Unit test: delete milestone success in tests/milestones/test_delete_operations.py (now with validation T028)
-- [ ] T038 [P] [US3.4] Unit test: delete invalid ID errors in tests/test_delete_operations.py - 404, 403, 409 error handling
+- [ ] T037 [P] [US3.4] Unit test: delete milestone success (with validation T028) in tests/milestones/test_delete_operations.py
+- [ ] T038 [P] [US3.4] Unit test: delete invalid ID errors (404, 403, 409) in tests/test_delete_operations.py
 - [ ] T039 [P] [US3.4] Unit test: delete cascade/version conflict handling in tests/integration/test_delete_conflicts.py
-- [ ] T040 [US3.4] Integration test: complete delete workflows in tests/integration/test_workflows.py (delete after create)
+- [ ] T040 [US3.4] Integration test: complete delete workflows in tests/integration/test_workflows.py
 
 ### Implementation for US-3.4
 
-- [ ] T041 [US3.4] Verify all 6 delete operations in src/server.py exist and callable (delete_project through delete_milestone)
+- [ ] T041 [US3.4] Verify all 6 delete operations in src/server.py exist and callable
 - [ ] T042 [US3.4] Verify error handling for delete operations: catch 404, 403, 409 with user-friendly messages
 - [ ] T043 [US3.4] Verify return type consistency: all delete operations return DeleteResponse
 - [ ] T044 [US3.4] Run all delete operation tests (T031-T040) and verify passing
@@ -207,17 +172,17 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ---
 
-## Phase 5: US-3.5 - Edge Case & Boundary Testing (8 points)
+## Phase 5: US-3.5 - Edge Case & Boundary Testing (Ready to Start - Parallel with Phase 4)
 
-**Goal**: Comprehensive edge case and boundary value testing across all code paths (validation, session, error handling, CRUD)
+**Goal**: Comprehensive edge case and boundary value testing across all code paths
 
-**Status**: ✅ **READY TO START (Parallel with Phase 4)** (Prerequisites complete, 0/15 tasks done)
+**Status**: ✅ **READY TO START (Parallel with Phase 4)** (No dependencies between US-3.4 and US-3.5)
 
-**GitHub Issues**: #71-#85 (Phase 5) marked READY TO START (PARALLEL)
+**GitHub Issues**: #71-#85 (Phase 5) - Created and ready
 
-**Execution Note**: This phase can run in parallel with Phase 4 - no dependencies between them. After Phase 3 completion, Phase 4 and Phase 5 can proceed simultaneously.
+**Execution Note**: This phase can run in parallel with Phase 4 on a different team member. No dependencies between them. After Phase 3 completion, Phase 4 and Phase 5 can proceed simultaneously.
 
-**Independent Test Criteria**:
+**Story Acceptance Criteria**:
 - Edge cases identified from spec.md covered in tests
 - Boundary values tested (empty lists, max values, concurrent operations)
 - Timeout/network errors handled
@@ -225,11 +190,11 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ### Tests for US-3.5 (Test-First Discipline)
 
-- [ ] T046 [P] [US3.5] Unit test: empty list handling in tests/integration/test_edge_cases.py - verify empty results vs API errors
+- [ ] T046 [P] [US3.5] Unit test: empty list handling in tests/integration/test_edge_cases.py
 - [ ] T047 [P] [US3.5] Unit test: boundary value testing (0, -1, max int) in tests/integration/test_edge_cases.py
-- [ ] T048 [P] [US3.5] Unit test: concurrent operation handling in tests/integration/test_edge_cases.py - concurrent modifications, version conflicts
+- [ ] T048 [P] [US3.5] Unit test: concurrent operation handling in tests/integration/test_edge_cases.py
 - [ ] T049 [P] [US3.5] Unit test: timeout/network error handling in tests/error_handling/test_network_errors.py
-- [ ] T050 [P] [US3.5] Unit test: very large bulk operations (10k+ items) in tests/integration/test_bulk_operations.py - memory/performance
+- [ ] T050 [P] [US3.5] Unit test: very large bulk operations (10k+ items) in tests/integration/test_bulk_operations.py
 - [ ] T051 [P] [US3.5] Unit test: session expiry during operation in tests/auth/test_session_edge_cases.py
 - [ ] T052 [P] [US3.5] Unit test: rate limit exceeded during operation in tests/auth/test_rate_limit_edge_cases.py
 - [ ] T053 [P] [US3.5] Integration test: complete workflows with edge cases in tests/integration/test_workflows_edge_cases.py
@@ -237,7 +202,7 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 ### Implementation for US-3.5
 
 - [ ] T054 [US3.5] Verify session expiry handling: operations fail with "session expired" if TTL exceeded
-- [ ] T054 [US3.5] Verify rate limit handling: operations fail with "too many attempts" if rate limit exceeded
+- [ ] T055 [US3.5] Verify rate limit handling: operations fail with "too many attempts" if rate limit exceeded
 - [ ] T056 [US3.5] Verify timeout handling: operations fail with user-friendly message if request times out
 - [ ] T057 [US3.5] Verify concurrent modification handling: 409 conflict error with version mismatch info
 - [ ] T058 [US3.5] Run all edge case tests (T046-T053) and verify passing
@@ -247,13 +212,13 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ---
 
-## Phase 6: Sprint 4 Quality Gates & Validation
+## Phase 6: Sprint 4 Quality Gates & Validation (Pending Phases 2-5)
 
 **Purpose**: Verify Sprint 4 deliverables meet success criteria and feature is production-ready
 
-**Status**: ⏳ **PENDING** (Awaits Phases 2-5 completion, 0/10 tasks done)
+**Status**: ⏳ **PENDING** (Awaits Phases 2-5 completion)
 
-**GitHub Issues**: #86-#95 (Phase 6) marked PENDING with quality gate checklist
+**GitHub Issues**: #86-#95 (Phase 6) - Created with quality gate checklist
 
 **Execution Note**: This phase gates release approval. All Phases 2-5 must complete with all tests passing before Phase 6 begins.
 
@@ -270,13 +235,13 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ---
 
-## Phase 7: Release & Deployment
+## Phase 7: Release & Deployment (Pending Phase 6)
 
 **Purpose**: Prepare for v0.2.0 (Security Hardened MVP) release
 
-**Status**: ⏳ **PENDING** (Awaits Phase 6 completion - Quality gates must PASS, 0/8 tasks done)
+**Status**: ⏳ **PENDING** (Awaits Phase 6 completion - Quality gates must PASS)
 
-**GitHub Issues**: #96-#103 (Phase 7) marked PENDING with release checklist
+**GitHub Issues**: #96-#103 (Phase 7) - Created with release checklist
 
 **Execution Note**: Final phase. Only starts after Phase 6 quality gates pass. Includes version bump, changelog, git tag v0.2.0, and GitHub release publication.
 
@@ -296,20 +261,20 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ### Story Dependencies
 
-- **US-3.3** (Input Validation Tests): No dependencies → Can start immediately
-- **US-2.6** (Delete Validation Fix): No dependencies on other stories → Can run in parallel with US-3.3
-- **US-3.4** (Delete Operation Tests): Depends on US-2.6 validation fix (test after fix) → Start after T030
+- **US-3.3** (Input Validation Tests): ✅ COMPLETE - No dependencies
+- **US-2.6** (Delete Validation Fix): No dependencies on other stories → Can run in parallel with US-3.3 (already done)
+- **US-3.4** (Delete Operation Tests): **Depends on US-2.6** (T030 must complete first) → Start after T030
 - **US-3.5** (Edge Case Testing): No dependencies on other stories → Can run in parallel with US-3.4
 
 ### Parallel Opportunities
 
-**Week 1 (Day 1-3)**:
-- US-3.3 tests (T006-T016) run in parallel
-- US-2.6 validation fix (T026-T028) runs in parallel with US-3.3
+**Week 1 (Days 1-3)**:
+- ✅ US-3.3 complete (merged PR #13)
+- US-2.6 validation fix (T021-T030) runs immediately
 
-**Week 1 (Day 4-5)**:
-- US-3.4 delete tests (T031-T040) after US-2.6 validation complete (T030)
-- US-3.5 edge case tests (T046-T053) can start in parallel with US-3.4 on different team member
+**Week 1 (Days 4-5)**:
+- US-3.4 delete tests (T031-T045) **starts immediately after** US-2.6 validation fix (T030) completes
+- US-3.5 edge case tests (T046-T059) **can start in parallel** with US-3.4 on different team member
 
 **Week 2**:
 - Quality gates (T060-T069) run after all user story tests complete
@@ -317,14 +282,12 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ### Suggested Team Allocation (2 developers)
 
-**Developer A**: US-3.3 + US-3.4 (tests first, then validation fix, then delete tests)
-- T006-T020 (US-3.3 tests + verification)
-- T026-T030 (US-2.6 validation fix)
-- T031-T045 (US-3.4 delete tests)
+**Developer A**: US-2.6 (validation fix) → US-3.4 (delete tests)
+- T021-T030 (US-2.6: write tests, then add validation)
+- T031-T045 (US-3.4: delete operation tests after US-2.6 validation in place)
 
-**Developer B**: US-2.6 (fix) + US-3.5 (edge cases in parallel)
-- T021-T025 (US-2.6 tests)
-- T046-T059 (US-3.5 edge case tests in parallel with Dev A's US-3.4)
+**Developer B**: US-3.5 (edge cases in parallel with Dev A's US-3.4)
+- T046-T059 (US-3.5: edge case tests can start after T030)
 
 **Both**: Quality gates and release
 - T060-T078 (quality validation and release prep)
@@ -333,22 +296,24 @@ description: "Task list for MCP Server Hardening Sprint 4 - Final implementation
 
 ## Implementation Strategy
 
-### MVP Scope (Sprints 1-3 Already Complete)
+### Sprints 1-3: MVP Delivered (18 Stories - 100% Complete)
 
-Sprints 1-3 delivered the MVP:
-- Input validation framework
-- Session management with TTL, rate limiting, concurrent limits
-- Secure logging and error handling
-- Code quality and type hints
-- All deployed to production
+Sprints 1-3 delivered the core MVP:
+- ✅ Input validation framework (US-1.1)
+- ✅ Session management with TTL, rate limiting, concurrent limits (US-1.2, US-1.3)
+- ✅ Secure logging and error handling (US-1.5, US-3.2)
+- ✅ Code quality and type hints (US-2.4, US-2.5, US-2.2, US-2.3)
+- ✅ Session validation test suite (US-3.1)
+- ✅ Input validation test suite (US-3.3)
+- ✅ All deployed and merged to master
 
-### Sprint 4: Final Polish & Comprehensive Testing
+### Sprint 4: Final Polish & Comprehensive Testing (4 Stories - In Progress)
 
 Sprint 4 completes the epic with:
-1. **Input Validation Test Suite** (US-3.3): Prove all validation rules work
-2. **Delete Operation Validation Fix** (US-2.6): Close discovered gap in delete operations
-3. **Delete Operation Test Suite** (US-3.4): Comprehensive tests for all delete paths
-4. **Edge Case Testing** (US-3.5): Boundary conditions and concurrent scenarios
+1. **US-2.6**: Close validation gaps in 3 delete operations (discovered gap, 3-5 points)
+2. **US-3.3**: Prove validation works for all resource types (✅ COMPLETE, merged)
+3. **US-3.4**: Comprehensive delete operation testing (blocked by US-2.6)
+4. **US-3.5**: Edge case and boundary condition testing
 
 **Result**: >85% code coverage, production-ready, Milestone 1 (v0.2.0) released
 
@@ -358,7 +323,7 @@ Sprint 4 completes the epic with:
 
 ✅ **Phase 6 Gate**: All quality metrics pass
 - [ ] Code coverage >85% (measured via pytest-cov)
-- [ ] All tests passing (200+ tests from Sprints 1-4)
+- [ ] All tests passing (300+ tests from Sprints 1-4)
 - [ ] Zero type errors (mypy clean)
 - [ ] Zero lint violations (flake8 clean)
 - [ ] All code formatted (black/isort compliant)
@@ -378,23 +343,34 @@ Sprint 4 completes the epic with:
 
 ## Checkpoints
 
-**After US-3.3**: Input validation test suite complete - 11 tests, validation layer proven
-**After US-2.6**: Delete operations validation implemented - 3 operations fixed
-**After US-3.4**: Delete operations test suite complete - 10 tests, all delete paths covered
-**After US-3.5**: Edge case testing complete - 8 tests, boundary conditions covered, >85% coverage achieved
-**After Phase 6**: Quality gates pass - code ready for production
-**After Phase 7**: v0.2.0 released - Security Hardened MVP deployed
+**After US-3.3 (Phase 2)**: ✅ COMPLETE
+- Input validation test suite complete - 11+ tests, validation layer proven, merged to master
+
+**After US-2.6 (Phase 3)**: TODO
+- Delete operations validation implemented - 3 operations fixed, 5 tests passing
+
+**After US-3.4 (Phase 4)**: TODO
+- Delete operations test suite complete - 10+ tests, all delete paths covered
+
+**After US-3.5 (Phase 5)**: TODO
+- Edge case testing complete - 8+ tests, boundary conditions covered, >85% coverage achieved
+
+**After Phase 6**: TODO
+- Quality gates pass - code ready for production
+
+**After Phase 7**: TODO
+- v0.2.0 released - Security Hardened MVP deployed
 
 ---
 
 ## Notes
 
-- All tasks build on Sprints 1-3 work (18 stories already merged)
-- Sprint 4 = final 4 stories (US-3.3✅, US-2.6, US-3.4, US-3.5)
-- US-2.6 discovered during planning, added to Sprint 4 scope
-- Feature complete = end of Sprint 4 (all 5 spec user stories done, >85% coverage)
+- All 4 Sprint 4 stories build on Sprints 1-3 work (18 stories already merged, 269+ tests)
+- US-3.3 already complete (Phase 2 ✅) - merged to master PR #13
+- US-2.6 discovered during planning (validation gap), added to Sprint 4 scope
+- Feature complete = end of Sprint 4 (all 22 stories done, >85% coverage)
 - Milestone 1 (v0.2.0) releases Sprint 4 work
-- Sprint 5+ (distributed sessions, monitoring) are continuation phases
-- Each task references existing code paths (no new modules needed)
+- Sprint 5+ (distributed sessions, monitoring, performance) are continuation phases
+- Each task references existing code paths (no new modules needed beyond Sprints 1-3)
 - Test-first discipline: write tests BEFORE fixes (T021-T023 before T026-T028)
-- Commit after each user story completion (US-3.3, US-2.6, US-3.4, US-3.5)
+- Commit after each user story completion (US-2.6, US-3.4, US-3.5)

@@ -63,10 +63,6 @@ COPY --chown=appuser:appuser src/ src/
 # Switch to non-root user
 USER appuser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
 # Default environment variables
 ENV TAIGA_TRANSPORT=stdio \
     LOG_LEVEL=INFO \

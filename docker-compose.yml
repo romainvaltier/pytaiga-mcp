@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  pytaiga-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pytaiga-mcp-server
+
+    environment:
+      # Security: Allow HTTP Taiga only for local development
+      - ALLOW_HTTP_TAIGA=false
+
+      # MCP Server Configuration
+      - TAIGA_TRANSPORT=sse
+      - LOG_LEVEL=INFO
+
+      # Session Configuration
+      - SESSION_EXPIRY=28800
+      - MAX_CONCURRENT_SESSIONS=5
+
+      # Rate Limiting
+      - RATE_LIMIT_REQUESTS=5
+      - RATE_LIMIT_WINDOW=900
+      - RATE_LIMIT_LOCKOUT_SECONDS=1800
+
+      # API Configuration
+      - REQUEST_TIMEOUT=30
+      - MAX_CONNECTIONS=10
+      - MAX_KEEPALIVE_CONNECTIONS=5
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+    restart: unless-stopped

@@ -9,7 +9,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Version 0.2.0](https://img.shields.io/badge/version-0.2.0-brightgreen.svg)](https://github.com/romainvaltier/pytaiga-mcp/releases/tag/v0.2.0)
+[![Version 0.2.0-rc.1](https://img.shields.io/badge/version-0.2.0--rc.1-yellow.svg)](https://github.com/romainvaltier/pytaiga-mcp/releases/tag/v0.2.0-rc.1)
 [![Tests: 417 Passing](https://img.shields.io/badge/tests-417%20passing-brightgreen.svg)](./specs/001-server-hardening/tasks.md)
 [![Code Quality: Passing](https://img.shields.io/badge/code%20quality-passing-brightgreen.svg)](./CLAUDE.md)
 
@@ -26,11 +26,13 @@ This bridge provides a comprehensive set of tools and resources for AI agents to
 
 By using the MCP standard, this bridge allows AI systems to maintain contextual awareness about project state and perform complex project management tasks programmatically.
 
-## v0.2.0 Release - Security Hardened MVP ✨
+## v0.2.0-rc.1 - Pre-Release Candidate 🚀
 
-This release marks the completion of the **Security Hardening & Quality Improvements epic** with 22 user stories across 4 sprints:
+**Status**: First release candidate for v0.2.0 MVP. Ready for community testing and feedback.
 
-### ✅ What's New in v0.2.0
+This release marks the completion of the **Security Hardening & Quality Improvements epic** with 22 user stories across 4 sprints. We've added comprehensive Docker deployment support, GitHub Actions CI/CD pipeline, and automated quality gates.
+
+### ✅ What's in v0.2.0-rc.1
 
 **Security Hardening**
 - Input validation for all MCP tools (string length, ID boundaries, types)
@@ -52,11 +54,18 @@ This release marks the completion of the **Security Hardening & Quality Improvem
 - Type safety with TypedDict response objects
 - Python 3.10 compatibility
 
+**Deployment & DevOps**
+- Docker container images published to GitHub Container Registry (ghcr.io)
+- Multi-stage Docker build for optimized image size
+- Docker Compose templates for quick deployment
+- GitHub Actions CI/CD pipeline with automated quality gates on every push
+- Semantic versioning for container images (dev, rc, stable)
+
 **Documentation**
-- Complete CLAUDE.md with development patterns
-- CHANGELOG.md with full release notes
+- Complete CLAUDE.md with development patterns and release management
 - Comprehensive error handling guide
 - Configuration examples and best practices
+- [Full Release Notes](https://github.com/romainvaltier/pytaiga-mcp/releases/tag/v0.2.0-rc.1)
 
 ### Quality Metrics
 
@@ -71,7 +80,29 @@ This release marks the completion of the **Security Hardening & Quality Improvem
 | Type Checking | ✅ mypy (0 errors) |
 | Linting | ✅ flake8 (0 violations) |
 
-[See full CHANGELOG.md](./CHANGELOG.md) for complete release notes.
+### Testing This RC
+
+We encourage you to test v0.2.0-rc.1 and provide feedback before the stable release:
+
+```bash
+# Pull and run the RC image
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v0.2.0-rc.1
+docker-compose up
+
+# Or run tests locally
+pytest tests/ -v --cov=src
+```
+
+**Please report issues** on [GitHub Issues](https://github.com/romainvaltier/pytaiga-mcp/issues) with:
+- Your Python version and platform
+- Steps to reproduce
+- Expected vs actual behavior
+
+---
+
+⚠️ **Release Status**: This is a pre-release candidate. Features and APIs may change before the stable v0.2.0 release. For production use, wait for the stable release.
+
+---
 
 ## Features
 
@@ -88,14 +119,27 @@ The bridge supports the following Taiga resources with complete CRUD operations:
 
 ## Installation
 
+### Quick Start with Docker (Recommended for RC Testing)
+
+The easiest way to test v0.2.0-rc.1 is with Docker:
+
+```bash
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v0.2.0-rc.1
+docker-compose up
+```
+
+See [Docker Build & CI/CD Pipeline](./CLAUDE.md#docker-build--cicd-pipeline) in CLAUDE.md for advanced Docker options.
+
+### Local Installation
+
 This project uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
 
-### Prerequisites
+#### Prerequisites
 
 - Python 3.10 or higher
 - uv package manager
 
-### Basic Installation
+#### Basic Installation
 
 ```bash
 # Clone the repository
@@ -106,7 +150,7 @@ cd pyTaigaMCP
 ./install.sh
 ```
 
-### Development Installation
+#### Development Installation
 
 For development (includes testing and code quality tools):
 
@@ -114,7 +158,7 @@ For development (includes testing and code quality tools):
 ./install.sh --dev
 ```
 
-### Manual Installation
+#### Manual Installation
 
 If you prefer to install manually:
 

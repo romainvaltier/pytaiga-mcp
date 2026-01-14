@@ -475,6 +475,114 @@ docker pull ghcr.io/romainvaltier/pytaiga-mcp:latest
 - Registry authentication isolated to CI/CD pipeline (`docker/login-action@v3`)
 - `.env` files and `.env.example` MUST NOT contain registry credentials
 
+## Release Management & Versioning
+
+### Release Workflow Pattern
+
+The project follows a **pre-release-first** pattern to ensure quality before declaring stable releases:
+
+1. **Create Pre-Release (RC)**
+   - Trigger: `gh release create vX.Y.Z-rc.1 --prerelease`
+   - GitHub Actions automatically builds and publishes `vX.Y.Z-rc.1` tag
+   - Release notes focus on features, testing instructions, known limitations
+   - Include disclaimer about RC status and encourage community testing
+
+2. **Validate in Real-World Usage**
+   - Community tests RC in their environments
+   - Report issues on GitHub Issues
+   - Fix critical issues → create `vX.Y.Z-rc.2` if needed
+
+3. **Create Stable Release**
+   - Trigger: `gh release create vX.Y.Z` (without `--prerelease`)
+   - GitHub Actions automatically creates semantic version tags:
+     - `vX.Y.Z` (exact version)
+     - `vX.Y` (latest patch in minor)
+     - `vX` (latest patch in major)
+     - `latest` (newest stable)
+
+4. **Cleanup Obsolete Tags**
+   - Before declaring milestone complete, delete old sprint/development tags
+   - Keep only semantic version tags and `dev` long-term
+   - Example: `git tag -d sprint4/us-2.6-delete-validation && git push origin :sprint4/us-2.6-delete-validation`
+
+### Container Image Tagging Strategy
+
+**Internal Tags** (development-only, not documented externally):
+- `dev`: Created on every master push; always latest development build
+
+**External Tags** (documented in release notes; users should pin to these):
+- `vX.Y.Z-rc.N`: Pre-release candidate (e.g., `v0.2.0-rc.1`)
+  - For community testing and validation
+  - Subject to change before stable version
+- `vX.Y.Z`: Stable release (exact, immutable version)
+- `vX.Y`: Latest patch in minor version (floating; auto-updated)
+- `vX`: Latest patch in major version (floating; auto-updated)
+- `latest`: Newest stable release (floating; production-only)
+
+**External Pull Examples**:
+```bash
+# Pre-release testing
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v0.2.0-rc.1
+
+# Pin to specific stable version (recommended for production)
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v0.2.0
+
+# Pin to minor version (gets latest patches automatically)
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v0.2
+
+# Always latest stable
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:latest
+```
+
+### Release Notes Guidelines
+
+Release notes are the primary user-facing documentation. They MUST:
+- ✅ Focus on features, capabilities, and improvements from user perspective
+- ✅ Include deployment instructions and testing guidance
+- ✅ Document known limitations and breaking changes
+- ✅ Provide feedback and issue reporting channels
+- ✅ For RCs: Include disclaimer about pre-release status
+
+Release notes MUST NOT:
+- ❌ Include internal process details or administrative overhead
+- ❌ Document test framework specifics or tool configuration minutiae
+- ❌ List commit-level changes (use git history for that)
+- ❌ Include developer-facing implementation details
+
+**Example RC Release Notes Structure**:
+```markdown
+## v0.2.0-rc.1 - Pre-Release Testing
+
+Brief description of the release.
+
+### Core Features
+- Feature 1: User-facing value proposition
+- Feature 2: What users can do with it
+
+### Deployment & Operations
+- Docker support details
+- CI/CD pipeline summary
+- Infrastructure requirements
+
+### Quality & Testing
+- Test coverage
+- Code quality standards
+
+### Known Limitations
+- What's not included
+- Compatibility notes
+
+### Testing This RC
+Quick start and testing instructions.
+
+### Reporting Issues
+GitHub Issues link and what to include.
+
+---
+
+**This is a pre-release candidate. Please test thoroughly and report feedback before the stable release.**
+```
+
 ## Sprint 4 Patterns & Configurations
 
 Sprint 4 (Server Hardening Phase 3-5) introduced the following new patterns and configurations:

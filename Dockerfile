@@ -29,7 +29,7 @@ COPY src/ src/
 
 # Install dependencies using uv
 RUN uv pip compile pyproject.toml -o requirements.txt && \
-    uv pip install --python /usr/bin/python3.10 -r requirements.txt
+    uv pip install --system -r requirements.txt
 
 # Stage 2: Runtime image
 FROM python:3.10-slim

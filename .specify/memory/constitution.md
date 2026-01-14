@@ -1,12 +1,13 @@
 <!--
-  SYNC IMPACT REPORT: Constitution v1.1.0 Infrastructure & Configuration Amendments
-  - Version: v1.0.0 → v1.1.0 (MINOR: New principle added, guidance expanded)
-  - Added Principle VI: Infrastructure Independence & Configuration Hygiene
-  - Clarified credential handling anti-patterns in Principle I enforcement
-  - Expanded governance section with explicit "what NOT to configure"
-  - Rationale: Docker deployment & standalone operation revealed need for
-    infrastructure-agnostic design and strict secrets management
-  - Files updated: .specify/templates/spec-template.md (deployment section)
+  SYNC IMPACT REPORT: Constitution v1.2.0 Build & Deployment Automation Principle
+  - Version: v1.1.0 → v1.2.0 (MINOR: New principle VII added, governance expanded)
+  - Added Principle VII: Build & Deployment Automation & Registry Discipline
+  - Clarified semantic versioning for container images (dev, test, vX.Y.Z, latest)
+  - Added container registry standards and image publishing requirements
+  - Expanded governance with automated quality gates in CI/CD pipeline
+  - Rationale: GitHub Actions workflow implementation revealed need for explicit
+    build discipline, semantic versioning, and automated quality validation
+  - Files flagged for update: CLAUDE.md (Docker/build section), .specify/templates/plan-template.md
   - Date: 2026-01-14
 -->
 
@@ -52,6 +53,18 @@ The MCP server MUST deploy independently from Taiga, connecting to external inst
 
 **Rationale**: Enables the same MCP server image to connect to dev, staging, or production Taiga without rebuild or configuration change. Prevents credentials leaking in container images or environment variable dumps. Supports multi-tenant and hybrid deployment scenarios.
 
+### VII. Build & Deployment Automation & Registry Discipline
+All code changes MUST trigger automated quality gates (formatting, type checking, linting, test execution) via CI/CD pipelines. Container images MUST be built, tagged with semantic versioning, and published to a container registry (GitHub Container Registry) as part of the release process. Image tagging strategy MUST distinguish dev, test, and production builds using semantic version tags.
+
+**Enforcement**:
+- CI/CD pipeline (GitHub Actions) runs on every push to master and on release publication.
+- Pipeline MUST execute: `black --check`, `isort --check`, `mypy`, `flake8`, `pytest --cov` with >80% coverage threshold.
+- Container images tagged: `dev` for master builds, release candidate version (e.g., `v1.2.0-rc.1`) for pre-releases, semantic versions (`v1.2.0`, `v1.2`, `v1`) and `latest` for stable releases.
+- Registry MUST be GitHub Container Registry (`ghcr.io`); no hardcoded registry credentials in source code.
+- Pipeline MUST reject builds that fail quality gates; only passing builds produce deployable artifacts.
+
+**Rationale**: Automated validation prevents quality regressions and ensures consistency across deployments. Semantic versioning on container images enables pinning and rollback. Decoupling code quality checks from manual PR review reduces human error and accelerates feedback loops.
+
 ## Development Workflow & Quality Gates
 
 ### Branching & Commit Discipline
@@ -78,6 +91,7 @@ The MCP server MUST deploy independently from Taiga, connecting to external inst
 - Error handling catches `TaigaException` explicitly
 - Breaking changes documented and approved
 - Deployment templates (docker-compose, k8s) do not include Taiga services
+- CI/CD validation passed (GitHub Actions green; no quality gate overrides)
 
 ## Roadmap Integration
 
@@ -96,10 +110,18 @@ All PR work MUST reference and align with active sprint stories. Roadmap status 
 3. **Ratification**: Agreement from active maintainers; update version per semver rules
 4. **Propagation**: Update CLAUDE.md, templates, and roadmap documentation; commit as `docs: amend constitution to vX.Y.Z`
 
-### Version Policy
+### Version Policy (Constitution)
 - **MAJOR**: Backward-incompatible governance change (e.g., authentication model redesign, principle removal)
 - **MINOR**: New principle, new mandatory section, materially expanded guidance
 - **PATCH**: Clarifications, wording refinements, typo fixes, non-semantic enforcement updates
+
+### Container Image Versioning Policy
+- **dev**: Automatic tag on every master branch push; always points to latest development build
+- **vX.Y.Z-rc.N**: Pre-release tag for release candidates (e.g., `v1.2.0-rc.1`); auto-tagged on pre-release publication
+- **vX.Y.Z**: Stable release tag (e.g., `v1.2.0`); auto-tagged on release publication
+- **vX.Y**: Latest patch in minor version (e.g., `v1.2`); updated on stable release
+- **vX**: Latest patch in major version (e.g., `v1`); updated on stable release
+- **latest**: Always points to newest stable release; only set on production releases
 
 ### Compliance Review
 - Quarterly review of constitution adherence (spot-check 3-5 PRs for checklist completion)
@@ -113,4 +135,4 @@ When a PR conflicts with constitution principles:
 3. If unresolved after 48 hours, escalate to project maintainers for decision
 4. Decision documented in PR comment (link to constitution principle for future reference)
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14
+**Version**: 1.2.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14

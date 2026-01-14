@@ -1,13 +1,13 @@
 <!--
-  SYNC IMPACT REPORT: Constitution v1.2.0 Build & Deployment Automation Principle
-  - Version: v1.1.0 → v1.2.0 (MINOR: New principle VII added, governance expanded)
-  - Added Principle VII: Build & Deployment Automation & Registry Discipline
-  - Clarified semantic versioning for container images (dev, test, vX.Y.Z, latest)
-  - Added container registry standards and image publishing requirements
-  - Expanded governance with automated quality gates in CI/CD pipeline
-  - Rationale: GitHub Actions workflow implementation revealed need for explicit
-    build discipline, semantic versioning, and automated quality validation
-  - Files flagged for update: CLAUDE.md (Docker/build section), .specify/templates/plan-template.md
+  SYNC IMPACT REPORT: Constitution v1.3.0 Release Management & Tag Hygiene Refinements
+  - Version: v1.2.0 → v1.3.0 (MINOR: Release management guidance added, tagging refined)
+  - Clarified externally-facing container image tags (removed `test` tag from public API)
+  - Added release management pattern: pre-release candidates before stable releases
+  - Introduced tag hygiene requirement: cleanup obsolete tags to keep repository clean
+  - Added guidance on release notes as external communication (not administrative)
+  - Rationale: v0.2.0-rc.1 creation and tag cleanup revealed best practices for
+    release workflow and public-facing communication
+  - Files flagged for update: CLAUDE.md (release management section), GitHub Actions workflow docs
   - Date: 2026-01-14
 -->
 
@@ -54,16 +54,25 @@ The MCP server MUST deploy independently from Taiga, connecting to external inst
 **Rationale**: Enables the same MCP server image to connect to dev, staging, or production Taiga without rebuild or configuration change. Prevents credentials leaking in container images or environment variable dumps. Supports multi-tenant and hybrid deployment scenarios.
 
 ### VII. Build & Deployment Automation & Registry Discipline
-All code changes MUST trigger automated quality gates (formatting, type checking, linting, test execution) via CI/CD pipelines. Container images MUST be built, tagged with semantic versioning, and published to a container registry (GitHub Container Registry) as part of the release process. Image tagging strategy MUST distinguish dev, test, and production builds using semantic version tags.
+All code changes MUST trigger automated quality gates (formatting, type checking, linting, test execution) via CI/CD pipelines. Container images MUST be built, tagged with semantic versioning, and published to a container registry (GitHub Container Registry) as part of the release process. Release workflows MUST follow a pre-release-first model: test release candidates before declaring stable releases.
 
 **Enforcement**:
 - CI/CD pipeline (GitHub Actions) runs on every push to master and on release publication.
 - Pipeline MUST execute: `black --check`, `isort --check`, `mypy`, `flake8`, `pytest --cov` with >80% coverage threshold.
-- Container images tagged: `dev` for master builds, release candidate version (e.g., `v1.2.0-rc.1`) for pre-releases, semantic versions (`v1.2.0`, `v1.2`, `v1`) and `latest` for stable releases.
+- **Internal tags** (development only, not documented externally): `dev` for every master push.
+- **Pre-release tags**: `vX.Y.Z-rc.N` (e.g., `v0.2.0-rc.1`) on pre-release publication; used for validation testing.
+- **Stable release tags**: `vX.Y.Z` (exact), `vX.Y` (latest patch), `vX` (latest patch), `latest` (newest stable) on stable release publication.
 - Registry MUST be GitHub Container Registry (`ghcr.io`); no hardcoded registry credentials in source code.
 - Pipeline MUST reject builds that fail quality gates; only passing builds produce deployable artifacts.
+- **Tag Hygiene**: Old sprint/development tags MUST be deleted before declaring milestones; only version tags and `dev` remain.
 
-**Rationale**: Automated validation prevents quality regressions and ensures consistency across deployments. Semantic versioning on container images enables pinning and rollback. Decoupling code quality checks from manual PR review reduces human error and accelerates feedback loops.
+**Release Management Pattern**:
+1. Create pre-release (RC) - tests full CI/CD pipeline, allows community validation
+2. Validate in real-world usage - fix issues if needed in subsequent RCs
+3. Create stable release - automatic semantic version tagging
+4. Cleanup obsolete tags - remove old sprint/development tags for repository cleanliness
+
+**Rationale**: Automated validation prevents quality regressions. Pre-release-first pattern enables real-world testing before declaring stable versions. Semantic versioning on container images enables pinning and rollback. Decoupling code quality checks from manual PR review reduces human error. Tag cleanup maintains repository hygiene and clarity of version history.
 
 ## Development Workflow & Quality Gates
 
@@ -115,18 +124,35 @@ All PR work MUST reference and align with active sprint stories. Roadmap status 
 - **MINOR**: New principle, new mandatory section, materially expanded guidance
 - **PATCH**: Clarifications, wording refinements, typo fixes, non-semantic enforcement updates
 
-### Container Image Versioning Policy
-- **dev**: Automatic tag on every master branch push; always points to latest development build
-- **vX.Y.Z-rc.N**: Pre-release tag for release candidates (e.g., `v1.2.0-rc.1`); auto-tagged on pre-release publication
-- **vX.Y.Z**: Stable release tag (e.g., `v1.2.0`); auto-tagged on release publication
-- **vX.Y**: Latest patch in minor version (e.g., `v1.2`); updated on stable release
-- **vX**: Latest patch in major version (e.g., `v1`); updated on stable release
-- **latest**: Always points to newest stable release; only set on production releases
+### Container Image Tagging & Release Strategy
+**Internal Tags** (not documented externally; development-only):
+- **dev**: Automatic tag on every master branch push; always latest development build
+
+**External Tags** (documented in release notes; users should pin to these):
+- **vX.Y.Z-rc.N**: Pre-release release candidate (e.g., `v0.2.0-rc.1`); auto-tagged on pre-release publication
+  - For testing and community validation before stable release
+  - Subject to change before stable version
+- **vX.Y.Z**: Stable release (e.g., `v0.2.0`); exact, immutable version match
+- **vX.Y**: Latest patch in minor version (e.g., `v0.2`); floating tag for automatic updates
+- **vX**: Latest patch in major version (e.g., `v0`); floating tag for automatic updates
+- **latest**: Newest stable release; floating tag for users who want latest stable
+
+**Tag Cleanup Policy**:
+- Obsolete sprint/development tags (e.g., `sprint4/us-2.6-delete-validation`) deleted before milestone release
+- Only semantic version tags and `dev` retained long-term
+- Reduces repository clutter and clarifies version history
+
+### Release Notes & External Communication
+- Release notes are the primary user-facing documentation - MUST focus on features and capabilities, not administrative details
+- Release notes MUST include: features, deployment instructions, testing guidance, known limitations, and feedback channels
+- Release notes SHOULD NOT include: internal process details, test framework specifics, or tool configuration minutiae
+- Pre-release notes SHOULD include disclaimer about RC status and encourage testing/feedback
 
 ### Compliance Review
 - Quarterly review of constitution adherence (spot-check 3-5 PRs for checklist completion)
 - Annual full roadmap review and constitution alignment assessment
 - Runtime guidance in CLAUDE.md supersedes boilerplate; updates to CLAUDE.md trigger patch version bump
+- Release workflow audits verify RC→stable pattern followed and tag cleanup completed
 
 ### Dispute Resolution
 When a PR conflicts with constitution principles:
@@ -135,4 +161,4 @@ When a PR conflicts with constitution principles:
 3. If unresolved after 48 hours, escalate to project maintainers for decision
 4. Decision documented in PR comment (link to constitution principle for future reference)
 
-**Version**: 1.2.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14
+**Version**: 1.3.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14

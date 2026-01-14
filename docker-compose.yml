@@ -37,11 +37,4 @@ services:
       # Optional: Mount logs directory
       - ./logs:/app/logs
 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${MCP_PORT:-8000}/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-
     restart: unless-stopped

@@ -2239,4 +2239,14 @@ def session_status(session_id: str) -> SessionStatusResponse:
 
 # --- Run the server ---
 if __name__ == "__main__":
-    mcp.run()
+    import sys
+
+    # Determine transport mode from environment variable or command-line args
+    transport = os.getenv("TAIGA_TRANSPORT", "stdio").lower()
+
+    # Support --sse command-line flag for backward compatibility
+    if "--sse" in sys.argv:
+        transport = "sse"
+
+    logger.info(f"Starting MCP server with transport: {transport}")
+    mcp.run(transport=transport)

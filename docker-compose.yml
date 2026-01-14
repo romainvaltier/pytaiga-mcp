@@ -1,96 +1,15 @@
 version: '3.8'
 
 services:
-  # Taiga Backend API
-  taiga-backend:
-    image: taigaio/taiga-back:latest
-    container_name: pytaiga-taiga-backend
-    depends_on:
-      - taiga-db
-      - taiga-redis
-    environment:
-      - DEBUG=False
-      - SECRET_KEY=replace-me-with-secure-key-in-production
-      - DATABASE_URL=postgres://taiga:taiga_password@taiga-db:5432/taiga
-      - REDIS_URL=redis://taiga-redis:6379/0
-      - DEFAULT_FROM_EMAIL=no-reply@taiga.io
-      - ORGANIZATIONS_INVITATION_TEMPLATE_EMAIL_DOMAIN=taiga.io
-    volumes:
-      - taiga-media:/taiga/media
-      - taiga-static:/taiga/static
-    ports:
-      - "8001:8000"
-    networks:
-      - taiga-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/auth"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Taiga Frontend
-  taiga-frontend:
-    image: taigaio/taiga-front:latest
-    container_name: pytaiga-taiga-frontend
-    environment:
-      - TAIGA_URL=http://localhost:9000
-      - TAIGA_WEBSOCKET_URL=ws://localhost:9000
-    ports:
-      - "9000:80"
-    depends_on:
-      - taiga-backend
-    networks:
-      - taiga-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # PostgreSQL Database
-  taiga-db:
-    image: postgres:13-alpine
-    container_name: pytaiga-taiga-db
-    environment:
-      - POSTGRES_DB=taiga
-      - POSTGRES_USER=taiga
-      - POSTGRES_PASSWORD=taiga_password
-    volumes:
-      - taiga-db-data:/var/lib/postgresql/data
-    networks:
-      - taiga-network
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "taiga"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis Cache
-  taiga-redis:
-    image: redis:7-alpine
-    container_name: pytaiga-taiga-redis
-    networks:
-      - taiga-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # pytaiga-mcp Server (SSE mode)
   pytaiga-mcp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: pytaiga-mcp-server
-    depends_on:
-      taiga-backend:
-        condition: service_healthy
+
     environment:
-      # Taiga Configuration
-      - TAIGA_API_URL=http://taiga-backend:8000
-      - ALLOW_HTTP_TAIGA=true
+      # Security: Allow HTTP Taiga only for local development
+      - ALLOW_HTTP_TAIGA=false
 
       # MCP Server Configuration
       - TAIGA_TRANSPORT=sse
@@ -109,29 +28,19 @@ services:
       - REQUEST_TIMEOUT=30
       - MAX_CONNECTIONS=10
       - MAX_KEEPALIVE_CONNECTIONS=5
+
     ports:
       - "8000:8000"
+
     volumes:
       # Optional: Mount logs directory
       - ./logs:/app/logs
-    networks:
-      - taiga-network
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
+
     restart: unless-stopped
-
-volumes:
-  taiga-media:
-    driver: local
-  taiga-static:
-    driver: local
-  taiga-db-data:
-    driver: local
-
-networks:
-  taiga-network:
-    driver: bridge

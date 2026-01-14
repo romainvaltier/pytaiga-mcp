@@ -1,6 +1,6 @@
 # Multi-stage build for pytaiga-mcp
 # Stage 1: Build environment
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
@@ -18,7 +18,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv package manager
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.cargo/bin/uv /usr/local/bin/uv
 
 # Copy project files
 WORKDIR /build
@@ -27,9 +28,8 @@ COPY README.md README.md
 COPY src/ src/
 
 # Install dependencies using uv
-ENV PATH="/root/.cargo/bin:$PATH"
-RUN /root/.cargo/bin/uv pip compile pyproject.toml -o requirements.txt && \
-    /root/.cargo/bin/uv pip install --python /usr/bin/python3.10 -r requirements.txt
+RUN uv pip compile pyproject.toml -o requirements.txt && \
+    uv pip install --python /usr/bin/python3.10 -r requirements.txt
 
 # Stage 2: Runtime image
 FROM python:3.10-slim

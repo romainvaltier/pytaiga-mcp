@@ -1,9 +1,13 @@
 <!--
-  SYNC IMPACT REPORT: Constitution v1.0.0 Initial Creation
-  - Version: Created at v1.0.0 (first constitution adoption)
-  - Five core principles established for Taiga MCP Bridge
-  - Governance framework aligned with GitHub Flow workflow
-  - Templates updated for consistency with these principles
+  SYNC IMPACT REPORT: Constitution v1.1.0 Infrastructure & Configuration Amendments
+  - Version: v1.0.0 → v1.1.0 (MINOR: New principle added, guidance expanded)
+  - Added Principle VI: Infrastructure Independence & Configuration Hygiene
+  - Clarified credential handling anti-patterns in Principle I enforcement
+  - Expanded governance section with explicit "what NOT to configure"
+  - Rationale: Docker deployment & standalone operation revealed need for
+    infrastructure-agnostic design and strict secrets management
+  - Files updated: .specify/templates/spec-template.md (deployment section)
+  - Date: 2026-01-14
 -->
 
 # Taiga MCP Bridge Constitution
@@ -14,6 +18,8 @@
 All authentication and resource access MUST be mediated through explicit session management. Every tool invocation MUST include a valid `session_id` parameter validated via `_get_authenticated_client()`. This eliminates ambient authority and ensures audit traceability for all operations.
 
 **Enforcement**: Any tool proposal without session validation is rejected. Sessions expire per `SESSION_EXPIRY` config; clients MUST handle `PermissionError` gracefully.
+
+**Anti-Pattern**: Credentials (username, password) MUST NEVER be stored in environment variables, `.env` files, or container configuration. Credentials are passed dynamically at login time by clients; the server never persists them. This prevents credential leakage in logs, backups, or container images.
 
 ### II. API Parameter Standardization
 All pytaigaclient method calls MUST follow strict, documented parameter conventions. LIST operations use `project_id=`, GET operations use named/positional per library requirements, UPDATE/CREATE/DELETE operations use their designated signatures. Centralize library quirks in `TaigaClientWrapper.get_resource()`.
@@ -34,6 +40,17 @@ Tests are organized by resource type (auth, core, projects, epics, user_stories,
 The server MUST support both stdio (default, CLI clients) and SSE (web clients) transport modes without code branching. All configuration sourced from environment variables or `.env` file. No hardcoded production values allowed.
 
 **Enforcement**: All transport-specific code isolated in transport layer. Configuration tests verify both modes initialize correctly. Environment variable documentation required in README and code comments.
+
+### VI. Infrastructure Independence & Configuration Hygiene
+The MCP server MUST deploy independently from Taiga, connecting to external instances via runtime parameters (host URL passed at login). The server MUST NOT require hardcoded or pre-configured Taiga endpoints, credentials, or instance-specific settings. Configuration MUST reflect operational concerns only (timeouts, limits, logging), never authentication secrets or deployment topology.
+
+**Enforcement**:
+- Code review rejects any `TAIGA_*` environment variable that encodes a Taiga host/credentials.
+- `docker-compose.yml` and deployment templates do NOT include Taiga backend/database services.
+- `.env.example` documents only security/operational settings; `.env` SHOULD NOT be committed to version control.
+- All client authentication passes (host, username, password) as parameters to the `login` tool.
+
+**Rationale**: Enables the same MCP server image to connect to dev, staging, or production Taiga without rebuild or configuration change. Prevents credentials leaking in container images or environment variable dumps. Supports multi-tenant and hybrid deployment scenarios.
 
 ## Development Workflow & Quality Gates
 
@@ -57,8 +74,10 @@ The server MUST support both stdio (default, CLI clients) and SSE (web clients) 
 - Resource access uses `get_resource()` wrapper
 - Test coverage >80%, markers correctly applied
 - No hardcoded configuration values
+- No credentials, host URLs, or instance-specific settings in environment config
 - Error handling catches `TaigaException` explicitly
 - Breaking changes documented and approved
+- Deployment templates (docker-compose, k8s) do not include Taiga services
 
 ## Roadmap Integration
 
@@ -94,4 +113,4 @@ When a PR conflicts with constitution principles:
 3. If unresolved after 48 hours, escalate to project maintainers for decision
 4. Decision documented in PR comment (link to constitution principle for future reference)
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-12
+**Version**: 1.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14

@@ -10,16 +10,16 @@ import sys
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, List, Optional, TypedDict
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from src.taiga_client import TaigaClientWrapper
 
-# For Python 3.10 compatibility, use typing_extensions for NotRequired
-if sys.version_info >= (3, 11):
-    from typing import NotRequired
+# For Python 3.10 compatibility, use typing_extensions for TypedDict and NotRequired
+if sys.version_info >= (3, 12):
+    from typing import NotRequired, TypedDict
 else:
-    from typing_extensions import NotRequired
+    from typing_extensions import NotRequired, TypedDict
 
 
 # --- Authentication & Session Response Types ---

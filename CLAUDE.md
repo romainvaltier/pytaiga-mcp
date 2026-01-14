@@ -389,6 +389,92 @@ The Taiga API client implements:
 - Retry mechanism with exponential backoff for failed requests
 - Session cleanup removes expired sessions from memory
 
+## Docker Build & CI/CD Pipeline
+
+This project uses automated GitHub Actions workflows to build, test, and publish Docker images to GitHub Container Registry (ghcr.io), implementing Principle VII of the constitution.
+
+### GitHub Actions Workflow
+
+**Location**: `.github/workflows/build-docker.yml`
+
+**Triggers**:
+- Every push to `master` branch → builds with `dev` tag
+- Pre-release publication → builds with release candidate tag (e.g., `v1.2.0-rc.1`)
+- Stable release publication → builds with semantic version tags (`v1.2.0`, `v1.2`, `v1`, `latest`)
+
+**Quality Gates** (all must pass):
+- `black --check src/` - Code formatting
+- `isort --check-only src/` - Import organization
+- `mypy src/` - Type checking
+- `flake8 src/` - Linting
+- `pytest --cov=src` - Test execution with >80% coverage requirement
+
+### Dockerfile Best Practices
+
+**Multi-Stage Build Pattern**:
+The Dockerfile uses two stages to minimize runtime image size:
+1. **Builder Stage**: Installs build tools, compiles dependencies with `uv`, creates `requirements.txt`
+2. **Runtime Stage**: Copies only compiled packages, no build tools, runs as non-root user
+
+**uv Package Manager Installation**:
+When installing `uv` via the official installer script, note these patterns:
+```dockerfile
+# Install uv and move to system PATH
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+```
+
+**Key Gotchas**:
+- The installer script outputs binaries to `/root/.local/bin`, NOT `/root/.cargo/bin` (despite Rust-like naming)
+- Always verify installation path before using in subsequent RUN commands
+- Use `uv pip install --system` for system-wide package installation in containers (not virtual environments)
+
+**Compiled Dependencies**:
+```dockerfile
+# Generate requirements.txt with locked versions
+RUN uv pip compile pyproject.toml -o requirements.txt && \
+    uv pip install --system -r requirements.txt
+```
+This two-step approach locks dependency versions and enables reproducible builds across environments.
+
+### Container Image Versioning
+
+**Tag Strategy** (managed by GitHub Actions):
+- `dev` - Development build from `master` branch; always latest commit
+- `vX.Y.Z-rc.N` - Release candidate (e.g., `v1.2.0-rc.1`); pre-release versions
+- `vX.Y.Z` - Stable release (e.g., `v1.2.0`); exact version match
+- `vX.Y` - Latest patch in minor version (e.g., `v1.2`); floating version
+- `vX` - Latest patch in major version (e.g., `v1`); floating version
+- `latest` - Newest stable release; production only
+
+**Usage Examples**:
+```bash
+# Pin to development build
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:dev
+
+# Pin to specific release
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v1.2.0
+
+# Pin to latest patch in minor version
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:v1.2
+
+# Always get latest stable
+docker pull ghcr.io/romainvaltier/pytaiga-mcp:latest
+```
+
+### Registry Authentication
+
+**GitHub Container Registry (ghcr.io)**:
+- Uses `secrets.GITHUB_TOKEN` automatically provided by GitHub Actions
+- No additional secrets configuration needed
+- User authentication: `docker login ghcr.io -u $GITHUB_ACTOR`
+- Token already has `packages:write` permission via workflow permissions
+
+**Security Practices**:
+- Credentials are never hardcoded in Dockerfile or source code
+- Registry authentication isolated to CI/CD pipeline (`docker/login-action@v3`)
+- `.env` files and `.env.example` MUST NOT contain registry credentials
+
 ## Sprint 4 Patterns & Configurations
 
 Sprint 4 (Server Hardening Phase 3-5) introduced the following new patterns and configurations:

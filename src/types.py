@@ -15,11 +15,11 @@ from typing import TYPE_CHECKING, List, Optional
 if TYPE_CHECKING:
     from src.taiga_client import TaigaClientWrapper
 
-# For Python 3.10 compatibility, use typing_extensions for TypedDict and NotRequired
+# For Python 3.10 compatibility, use typing_extensions for TypedDict
 if sys.version_info >= (3, 12):
-    from typing import NotRequired, TypedDict
+    from typing import TypedDict
 else:
-    from typing_extensions import NotRequired, TypedDict
+    from typing_extensions import TypedDict
 
 
 # --- Authentication & Session Response Types ---
@@ -64,9 +64,9 @@ class StatusResponse(TypedDict):
 
     id: int
     name: str
-    color: NotRequired[str]
-    slug: NotRequired[str]
-    order: NotRequired[int]
+    color: Optional[str]
+    slug: Optional[str]
+    order: Optional[int]
 
 
 class PriorityResponse(TypedDict):
@@ -74,8 +74,8 @@ class PriorityResponse(TypedDict):
 
     id: int
     name: str
-    color: NotRequired[str]
-    order: NotRequired[int]
+    color: Optional[str]
+    order: Optional[int]
 
 
 class SeverityResponse(TypedDict):
@@ -83,8 +83,8 @@ class SeverityResponse(TypedDict):
 
     id: int
     name: str
-    color: NotRequired[str]
-    order: NotRequired[int]
+    color: Optional[str]
+    order: Optional[int]
 
 
 class IssueTypeResponse(TypedDict):
@@ -92,8 +92,8 @@ class IssueTypeResponse(TypedDict):
 
     id: int
     name: str
-    color: NotRequired[str]
-    order: NotRequired[int]
+    color: Optional[str]
+    order: Optional[int]
 
 
 # --- Standard Delete Response Type ---
@@ -120,15 +120,15 @@ class ProjectResponse(TypedDict):
     id: int
     name: str
     slug: str
-    description: NotRequired[str]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    is_private: NotRequired[bool]
-    default_owner_role: NotRequired[int]
-    tags: NotRequired[List[str]]
-    members: NotRequired[List[int]]
+    description: Optional[str]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    is_private: Optional[bool]
+    default_owner_role: Optional[int]
+    tags: Optional[List[str]]
+    members: Optional[List[int]]
 
 
 # --- User Story Response Types ---
@@ -139,17 +139,17 @@ class UserStoryResponse(TypedDict):
 
     id: int
     subject: str
-    description: NotRequired[str]
-    status: NotRequired[int]
-    project: NotRequired[int]
-    assigned_to: NotRequired[Optional[int]]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    epic: NotRequired[Optional[int]]
-    milestone: NotRequired[Optional[int]]
-    tags: NotRequired[List[str]]
+    description: Optional[str]
+    status: Optional[int]
+    project: Optional[int]
+    assigned_to: Optional[Optional[int]]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    epic: Optional[Optional[int]]
+    milestone: Optional[Optional[int]]
+    tags: Optional[List[str]]
 
 
 # --- Task Response Types ---
@@ -160,16 +160,16 @@ class TaskResponse(TypedDict):
 
     id: int
     subject: str
-    description: NotRequired[str]
-    status: NotRequired[int]
-    project: NotRequired[int]
-    user_story: NotRequired[Optional[int]]
-    assigned_to: NotRequired[Optional[int]]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    tags: NotRequired[List[str]]
+    description: Optional[str]
+    status: Optional[int]
+    project: Optional[int]
+    user_story: Optional[Optional[int]]
+    assigned_to: Optional[Optional[int]]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    tags: Optional[List[str]]
 
 
 # --- Issue Response Types ---
@@ -180,18 +180,18 @@ class IssueResponse(TypedDict):
 
     id: int
     subject: str
-    description: NotRequired[str]
-    status: NotRequired[int]
-    priority: NotRequired[int]
-    severity: NotRequired[int]
-    type: NotRequired[int]
-    project: NotRequired[int]
-    assigned_to: NotRequired[Optional[int]]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    tags: NotRequired[List[str]]
+    description: Optional[str]
+    status: Optional[int]
+    priority: Optional[int]
+    severity: Optional[int]
+    type: Optional[int]
+    project: Optional[int]
+    assigned_to: Optional[Optional[int]]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    tags: Optional[List[str]]
 
 
 # --- Epic Response Types ---
@@ -202,16 +202,16 @@ class EpicResponse(TypedDict):
 
     id: int
     subject: str
-    description: NotRequired[str]
-    status: NotRequired[int]
-    project: NotRequired[int]
-    assigned_to: NotRequired[Optional[int]]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    color: NotRequired[str]
-    user_stories: NotRequired[List[int]]
+    description: Optional[str]
+    status: Optional[int]
+    project: Optional[int]
+    assigned_to: Optional[Optional[int]]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    color: Optional[str]
+    user_stories: Optional[List[int]]
 
 
 # --- Milestone Response Types ---
@@ -222,15 +222,15 @@ class MilestoneResponse(TypedDict):
 
     id: int
     name: str
-    slug: NotRequired[str]
-    project: NotRequired[int]
-    estimated_start: NotRequired[str]
-    estimated_finish: NotRequired[str]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
-    is_closed: NotRequired[bool]
+    slug: Optional[str]
+    project: Optional[int]
+    estimated_start: Optional[str]
+    estimated_finish: Optional[str]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
+    is_closed: Optional[bool]
 
 
 # --- User/Member Response Types ---
@@ -240,11 +240,11 @@ class MemberResponse(TypedDict):
     """Response for project member objects."""
 
     id: int
-    user: NotRequired[int]
-    username: NotRequired[str]
-    email: NotRequired[str]
-    full_name: NotRequired[str]
-    role: NotRequired[int]
+    user: Optional[int]
+    username: Optional[str]
+    email: Optional[str]
+    full_name: Optional[str]
+    role: Optional[int]
 
 
 class InviteResponse(TypedDict):
@@ -264,13 +264,13 @@ class WikiPageResponse(TypedDict):
 
     id: int
     slug: str
-    title: NotRequired[str]
-    content: NotRequired[str]
-    project: NotRequired[int]
-    version: NotRequired[int]
-    created_date: NotRequired[str]
-    modified_date: NotRequired[str]
-    owner: NotRequired[int]
+    title: Optional[str]
+    content: Optional[str]
+    project: Optional[int]
+    version: Optional[int]
+    created_date: Optional[str]
+    modified_date: Optional[str]
+    owner: Optional[int]
 
 
 # --- Collection Response Types ---

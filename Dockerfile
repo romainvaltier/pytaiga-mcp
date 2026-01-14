@@ -75,5 +75,8 @@ ENV TAIGA_TRANSPORT=stdio \
 # Expose port for SSE mode
 EXPOSE 8000
 
+# Copy entrypoint script with executable permissions
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
+
 # Start the MCP server
-CMD ["python", "-m", "src.server"]
+ENTRYPOINT ["/app/entrypoint.sh"]
